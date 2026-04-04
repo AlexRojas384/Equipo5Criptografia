@@ -1,0 +1,19 @@
+# Entorno virtual
+venv/
+
+# Variables de entorno (contiene contraseñas)
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django
+*.log
+db.sqlite3
+
+# IDEs
+.vscode/
+.idea/
