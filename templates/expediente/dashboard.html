@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Casa Monarca</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #1a5276;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .navbar-user span {
+            color: #aed6f1;
+            font-size: 0.875rem;
+        }
+
+        .badge-rol {
+            background: #2e86c1;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            color: #aed6f1;
+            text-decoration: none;
+            font-size: 0.875rem;
+            border: 1px solid #aed6f1;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: white;
+            color: #1a5276;
+        }
+
+        /* Contenido */
+        .container {
+            max-width: 900px;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .welcome {
+            margin-bottom: 2rem;
+        }
+
+        .welcome h2 {
+            color: #1a5276;
+            font-size: 1.5rem;
+        }
+
+        .welcome p {
+            color: #666;
+            margin-top: 0.3rem;
+            font-size: 0.95rem;
+        }
+
+        /* Tarjetas */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.75rem 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            border-left: 4px solid #1a5276;
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1a5276;
+            margin-bottom: 0.4rem;
+        }
+
+        .card-desc {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        /* Colores por tipo de tarjeta */
+        .card.verde  { border-left-color: #1e8449; }
+        .card.azul   { border-left-color: #1a5276; }
+        .card.naranja{ border-left-color: #ca6f1e; }
+        .card.rojo   { border-left-color: #922b21; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="navbar-brand">🦋 Casa Monarca</div>
+    <div class="navbar-user">
+        <span>{{ usuario.get_full_name|default:usuario.username }}</span>
+        <span class="badge-rol">{{ rol }}</span>
+        <a href="{% url 'usuarios:logout' %}" class="btn-logout">Cerrar sesión</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="welcome">
+        <h2>Bienvenido, {{ usuario.get_full_name|default:usuario.username }}</h2>
+        <p>¿Qué deseas hacer hoy?</p>
+    </div>
+
+    <div class="cards-grid">
+
+        {% if rol == 'Admin' or rol == 'Voluntario' or rol == 'Junior' %}
+        <a href="{% url 'expediente:registrar' %}" class="card verde">
+            <div class="card-icon">📋</div>
+            <div class="card-title">Registrar migrante</div>
+            <div class="card-desc">Llenar el formulario de entrevista de ingreso.</div>
+        </a>
+        {% endif %}
+
+        {% if rol == 'Admin' or rol == 'Voluntario' %}
+        <a href="#" class="card azul">
+            <div class="card-icon">🗂️</div>
+            <div class="card-title">Ver expedientes</div>
+            <div class="card-desc">Consultar y editar expedientes existentes.</div>
+        </a>
+        {% endif %}
+
+        {% if rol == 'Junior' %}
+        <a href="#" class="card azul">
+            <div class="card-icon">🗂️</div>
+            <div class="card-title">Mis expedientes</div>
+            <div class="card-desc">Consultar los expedientes que tú has registrado.</div>
+        </a>
+        {% endif %}
+
+        {% if rol == 'Admin' or rol == 'Voluntario' %}
+        <a href="#" class="card naranja">
+            <div class="card-icon">📤</div>
+            <div class="card-title">Exportar expedientes</div>
+            <div class="card-desc">Descargar expedientes en formato seguro.</div>
+        </a>
+        {% endif %}
+
+        {% if rol == 'Admin' %}
+        <a href="#" class="card rojo">
+            <div class="card-icon">👥</div>
+            <div class="card-title">Gestionar usuarios</div>
+            <div class="card-desc">Crear, editar y asignar roles a colaboradores.</div>
+        </a>
+        {% endif %}
+
+        {% if rol == 'Admin' or rol == 'Auditor' %}
+        <a href="#" class="card naranja">
+            <div class="card-icon">🔍</div>
+            <div class="card-title">Bitácora de auditoría</div>
+            <div class="card-desc">Revisar el registro de eventos del sistema.</div>
+        </a>
+        {% endif %}
+
+    </div>
+</div>
+
+</body>
+</html>

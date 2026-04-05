@@ -9,19 +9,16 @@ class Usuario(AbstractUser):
         ('Auditor',    'Auditor'),
     ]
 
-    rol = models.CharField(
-        max_length=20,
-        choices=ROLES,
-        default='Junior'
-    )
-    telefono = models.CharField(max_length=20, blank=True, null=True)
-    activo    = models.BooleanField(default=True)
+    rol           = models.CharField(max_length=20, choices=ROLES, default='Junior')
+    telefono      = models.CharField(max_length=20, blank=True, null=True)
+    activo        = models.BooleanField(default=True)
+    llave_publica = models.TextField(blank=True, null=True)  # RSA pública
+    llave_privada = models.TextField(blank=True, null=True)  # RSA privada (cifrada)
 
     def __str__(self):
         return f"{self.username} ({self.rol})"
 
     def asignar_rol(self):
-        """Sincroniza el campo rol con el grupo de Django (RBAC)"""
         from django.contrib.auth.models import Group
         self.groups.clear()
         if self.rol:
