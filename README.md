@@ -8,4 +8,4 @@
 - David Aguirre
 - Arturo Camacho
 
-[Setup](https://www.google.com](https://github.com/AlexRojas384/Equipo5Criptografia/blob/main/Setup.md)
+[Setup](https://github.com/AlexRojas384/Equipo5Criptografia/blob/main/Setup.md)
