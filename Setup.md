@@ -43,11 +43,9 @@ pip install -r requirements.txt
 ```
 
 ### 4. Configurar variables de entorno
-Copia el archivo de ejemplo y llena tus credenciales:
-```bash
-cp .env.example .env
-```
-> **IMPORTANTE:** Abre el archivo `.env` y completa los valores. **Nunca** subas este archivo al repositorio.
+Crea el siguiente archivo de ejemplo y llena tus credenciales:
+
+> **IMPORTANTE:** Crea el archivo `.env` y completa los valores. **Nunca** subas este archivo al repositorio.
 
 ```env
 SECRET_KEY=django-insecure-pon-aqui-una-clave-larga-y-aleatoria
