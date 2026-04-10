@@ -132,6 +132,28 @@
         .card.azul   { border-left-color: #1a5276; }
         .card.naranja{ border-left-color: #ca6f1e; }
         .card.rojo   { border-left-color: #922b21; }
+        .card.morado { border-left-color: #7d3c98; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .notif-badge {
+            background: #c0392b;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
     </style>
 </head>
 <body>
@@ -141,6 +163,7 @@
     <div class="navbar-user">
         <span>{{ usuario.get_full_name|default:usuario.username }}</span>
         <span class="badge-rol">{{ rol }}</span>
+        <a href="{% url 'usuarios:cambiar_password' %}" class="btn-logout" title="Cambiar contraseña">🔑</a>
         <a href="{% url 'usuarios:logout' %}" class="btn-logout">Cerrar sesión</a>
     </div>
 </nav>
@@ -186,10 +209,23 @@
         {% endif %}
 
         {% if rol == 'Admin' %}
-        <a href="#" class="card rojo">
-            <div class="card-icon">👥</div>
+        <a href="{% url 'usuarios:admin_panel' %}" class="card rojo">
+            <div class="card-header">
+                <div class="card-icon">👥</div>
+                {% if solicitudes_pendientes %}
+                <span class="notif-badge">{{ solicitudes_pendientes }}</span>
+                {% endif %}
+            </div>
             <div class="card-title">Gestionar usuarios</div>
             <div class="card-desc">Crear, editar y asignar roles a colaboradores.</div>
+        </a>
+        {% endif %}
+
+        {% if rol != 'Admin' %}
+        <a href="{% url 'usuarios:solicitar_rol' %}" class="card morado">
+            <div class="card-icon">✉️</div>
+            <div class="card-title">Solicitar cambio de rol</div>
+            <div class="card-desc">Pide al administrador que cambie tu rol o permisos.</div>
         </a>
         {% endif %}
 

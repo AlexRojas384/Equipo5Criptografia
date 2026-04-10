@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios — Casa Monarca</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #1a5276;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; }
+        .btn-back {
+            color: #aed6f1; text-decoration: none; font-size: 0.875rem;
+            border: 1px solid #aed6f1; padding: 0.3rem 0.75rem; border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .btn-back:hover { background: white; color: #1a5276; }
+
+        /* Container */
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header h2 {
+            color: #1a5276;
+            font-size: 1.5rem;
+        }
+        .page-header p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        /* Alertas */
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            animation: fadeIn 0.3s ease;
+        }
+        .alert-success { background: #eafaf1; color: #1e8449; border-left: 4px solid #1e8449; }
+        .alert-error   { background: #fdecea; color: #c0392b; border-left: 4px solid #c0392b; }
+        .alert-warning { background: #fef9e7; color: #9a7d0a; border-left: 4px solid #f1c40f; }
+        .alert-info    { background: #eaf2f8; color: #1a5276; border-left: 4px solid #2e86c1; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #888;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .tab-btn:hover { color: #1a5276; }
+        .tab-btn.active {
+            color: #1a5276;
+            border-bottom-color: #1a5276;
+        }
+        .tab-badge {
+            background: #c0392b;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 10px;
+            margin-left: 0.4rem;
+            font-weight: 700;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Cards */
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1a5276;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Tabla de usuarios */
+        .users-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .users-table thead th {
+            background: #f7f9fb;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border-bottom: 2px solid #e9ecf2;
+        }
+        .users-table tbody tr {
+            transition: background 0.15s;
+        }
+        .users-table tbody tr:hover {
+            background: #f7f9fb;
+        }
+        .users-table td {
+            padding: 0.85rem 1rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-admin      { background: #922b21; color: white; }
+        .badge-voluntario { background: #2e86c1; color: white; }
+        .badge-junior     { background: #1e8449; color: white; }
+        .badge-auditor    { background: #ca6f1e; color: white; }
+        .badge-activo     { background: #eafaf1; color: #1e8449; border: 1px solid #abebc6; }
+        .badge-inactivo   { background: #fdecea; color: #c0392b; border: 1px solid #f5b7b1; }
+        .badge-pendiente  { background: #fef9e7; color: #9a7d0a; border: 1px solid #f9e79f; }
+        .badge-aprobada   { background: #eafaf1; color: #1e8449; }
+        .badge-rechazada  { background: #fdecea; color: #c0392b; }
+
+        /* Forms inline */
+        .inline-form {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .select-sm {
+            padding: 0.35rem 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: white;
+            cursor: pointer;
+        }
+        .select-sm:focus {
+            outline: none;
+            border-color: #1a5276;
+        }
+
+        /* Botones */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.75rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-primary   { background: #1a5276; color: white; }
+        .btn-primary:hover { background: #154360; }
+        .btn-success   { background: #1e8449; color: white; }
+        .btn-success:hover { background: #196f3d; }
+        .btn-danger    { background: #c0392b; color: white; }
+        .btn-danger:hover  { background: #a93226; }
+        .btn-outline   {
+            background: transparent; color: #1a5276;
+            border: 1px solid #1a5276;
+        }
+        .btn-outline:hover { background: #1a5276; color: white; }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        .btn-toggle {
+            width: 32px; height: 32px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            padding: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Permisos expandible */
+        .permisos-toggle {
+            cursor: pointer;
+            color: #2e86c1;
+            font-size: 0.82rem;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .permisos-toggle:hover { text-decoration: underline; }
+        .permisos-panel {
+            display: none;
+            padding: 0.75rem 0;
+        }
+        .permisos-panel.open { display: block; }
+        .permisos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+        .permiso-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            background: #f9f9f9;
+            transition: background 0.15s;
+        }
+        .permiso-item:hover { background: #eef5fb; }
+        .permiso-check {
+            width: 18px; height: 18px;
+            border-radius: 4px;
+            border: 2px solid #ccc;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .permiso-check.on {
+            background: #1e8449;
+            border-color: #1e8449;
+            color: white;
+        }
+        .permiso-check.from-role {
+            background: #2e86c1;
+            border-color: #2e86c1;
+            color: white;
+            opacity: 0.7;
+        }
+        .permiso-label { flex: 1; }
+        .permiso-source {
+            font-size: 0.7rem;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Solicitudes */
+        .solicitud-card {
+            background: #fefefe;
+            border: 1px solid #e9ecf2;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #f1c40f;
+            transition: box-shadow 0.2s;
+        }
+        .solicitud-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.08); }
+        .solicitud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        .solicitud-user {
+            font-weight: 700;
+            color: #1a5276;
+        }
+        .solicitud-date {
+            font-size: 0.78rem;
+            color: #999;
+        }
+        .solicitud-body {
+            font-size: 0.88rem;
+            color: #555;
+            margin-bottom: 1rem;
+        }
+        .solicitud-arrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .solicitud-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .solicitud-actions textarea {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            resize: vertical;
+            min-height: 36px;
+            max-height: 80px;
+            font-family: inherit;
+        }
+        .solicitud-actions textarea:focus {
+            outline: none;
+            border-color: #1a5276;
+        }
+
+        /* Bitácora */
+        .evento-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #f4f4f4;
+            font-size: 0.85rem;
+        }
+        .evento-item:last-child { border-bottom: none; }
+        .evento-icon {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .evento-icon.cambio_rol        { background: #eaf2f8; }
+        .evento-icon.toggle_permiso    { background: #fef9e7; }
+        .evento-icon.toggle_activo     { background: #fdecea; }
+        .evento-icon.solicitud_creada  { background: #f4ecf7; }
+        .evento-icon.solicitud_aprobada  { background: #eafaf1; }
+        .evento-icon.solicitud_rechazada { background: #fdecea; }
+        .evento-icon.login             { background: #eafaf1; }
+        .evento-icon.logout            { background: #f0f0f0; }
+        .evento-desc { flex: 1; color: #555; }
+        .evento-date { color: #bbb; font-size: 0.78rem; white-space: nowrap; }
+
+        /* Self badge */
+        .self-badge {
+            background: #f4ecf7;
+            color: #7d3c98;
+            font-size: 0.7rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 8px;
+            margin-left: 0.3rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .users-table { font-size: 0.82rem; }
+            .users-table th, .users-table td { padding: 0.5rem; }
+            .tabs { overflow-x: auto; }
+            .permisos-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #bbb;
+        }
+        .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .empty-state p { font-size: 0.9rem; }
+
+        /* Create user form */
+        .create-user-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #1e8449;
+        }
+        .create-user-card .section-title {
+            cursor: pointer;
+            user-select: none;
+        }
+        .create-user-card .section-title:hover {
+            color: #154360;
+        }
+        .create-form {
+            display: none;
+            margin-top: 1rem;
+        }
+        .create-form.open { display: block; }
+        .create-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .create-form-grid .form-group {
+            margin-bottom: 0;
+        }
+        .create-form-grid .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .create-form label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.35rem;
+        }
+        .create-form input,
+        .create-form select {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        .create-form input:focus,
+        .create-form select:focus {
+            outline: none;
+            border-color: #1a5276;
+        }
+        .create-form .help-text {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 0.2rem;
+        }
+        .create-form .btn-create {
+            margin-top: 1rem;
+            padding: 0.65rem 1.5rem;
+        }
+        .btn-open-create {
+            float: right;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="navbar-brand">🦋 Casa Monarca</div>
+    <a href="{% url 'expediente:dashboard' %}" class="btn-back">← Volver al dashboard</a>
+</nav>
+
+<div class="container">
+
+    <div class="page-header">
+        <h2>👥 Gestión de Usuarios y Roles</h2>
+        <p>Administra roles, permisos individuales y solicitudes de tu equipo.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('usuarios')">
+            👤 Usuarios
+        </button>
+        <button class="tab-btn" onclick="switchTab('solicitudes')">
+            📩 Solicitudes
+            {% if solicitudes %}
+            <span class="tab-badge">{{ solicitudes|length }}</span>
+            {% endif %}
+        </button>
+        <button class="tab-btn" onclick="switchTab('bitacora')">
+            🔍 Bitácora
+        </button>
+    </div>
+
+    <!-- ═══ TAB: USUARIOS ═══ -->
+    <div id="tab-usuarios" class="tab-content active">
+
+        <!-- Dar de alta usuario -->
+        <div class="create-user-card">
+            <div class="section-title" onclick="toggleCreateForm()">
+                ➕ Dar de alta usuario
+                <span id="create-arrow" style="font-size:0.8rem; margin-left:0.3rem;">▶</span>
+            </div>
+            <div id="create-form" class="create-form">
+                <form method="POST" action="{% url 'usuarios:crear_usuario' %}">
+                    {% csrf_token %}
+                    <div class="create-form-grid">
+                        <div class="form-group">
+                            <label for="new_username">Nombre de usuario *</label>
+                            <input type="text" name="username" id="new_username"
+                                   placeholder="ej: juan.perez" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">Contraseña *</label>
+                            <input type="password" name="password" id="new_password"
+                                   placeholder="Mínimo 8 caracteres" required minlength="8">
+                            <p class="help-text">El usuario podrá cambiarla después.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_first_name">Nombre</label>
+                            <input type="text" name="first_name" id="new_first_name"
+                                   placeholder="ej: Juan">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_last_name">Apellido</label>
+                            <input type="text" name="last_name" id="new_last_name"
+                                   placeholder="ej: Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label for="new_rol">Rol</label>
+                            <select name="rol" id="new_rol">
+                                {% for val, label in roles_disponibles %}
+                                <option value="{{ val }}" {% if val == 'Junior' %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group" style="display:flex; align-items:flex-end;">
+                            <button type="submit" class="btn btn-success btn-create">
+                                ✅ Crear usuario
+                            </button>
+                        </div>
+                    </div>
+                    <p class="help-text" style="margin-top:0.5rem;">🔐 Se generarán llaves RSA-4096 automáticamente para el nuevo usuario.</p>
+                </form>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title">📋 Usuarios registrados</div>
+
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre completo</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Cambiar rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for data in usuarios_data %}
+                    <tr>
+                        <td>
+                            <strong>{{ data.usuario.username }}</strong>
+                            {% if data.usuario.pk == usuario_actual.pk %}
+                            <span class="self-badge">Tú</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ data.usuario.get_full_name|default:"—" }}</td>
+                        <td>
+                            <span class="badge badge-{{ data.usuario.rol|lower }}">
+                                {{ data.usuario.rol }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if data.usuario.activo %}
+                            <span class="badge badge-activo">Activo</span>
+                            {% else %}
+                            <span class="badge badge-inactivo">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data.usuario.pk != usuario_actual.pk %}
+                            <form method="POST" action="{% url 'usuarios:cambiar_rol' data.usuario.pk %}" class="inline-form">
+                                {% csrf_token %}
+                                <select name="nuevo_rol" class="select-sm">
+                                    {% for val, label in roles_disponibles %}
+                                    <option value="{{ val }}" {% if val == data.usuario.rol %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                            </form>
+                            {% else %}
+                            <span style="color:#bbb; font-size:0.82rem;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:0.4rem; align-items:center;">
+                                {% if data.usuario.pk != usuario_actual.pk %}
+                                <form method="POST" action="{% url 'usuarios:toggle_activo' data.usuario.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="btn btn-toggle {% if data.usuario.activo %}btn-danger{% else %}btn-success{% endif %}"
+                                            title="{% if data.usuario.activo %}Desactivar{% else %}Activar{% endif %}">
+                                        {% if data.usuario.activo %}🔒{% else %}🔓{% endif %}
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <span class="permisos-toggle" onclick="togglePermisos('{{ data.usuario.pk }}')">
+                                    ⚙️ Permisos <span id="arrow-{{ data.usuario.pk }}">▶</span>
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="padding:0;">
+                            <div id="permisos-{{ data.usuario.pk }}" class="permisos-panel">
+                                <div style="padding: 0.5rem 1rem;">
+                                    <div style="font-size:0.78rem; color:#999; margin-bottom:0.5rem;">
+                                        🔵 = viene del rol &nbsp; 🟢 = permiso individual
+                                    </div>
+                                    <div class="permisos-grid">
+                                        {% for codename, nombre in todos_los_permisos %}
+                                        <div class="permiso-item">
+                                            {% if codename in data.permisos_individuales %}
+                                                {# Permiso individual activo — click para quitar #}
+                                                <form method="POST" action="{% url 'usuarios:toggle_permiso' %}" style="display:contents;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="user_id" value="{{ data.usuario.pk }}">
+                                                    <input type="hidden" name="codename" value="{{ codename }}">
+                                                    <button type="submit" class="permiso-check on" title="Quitar permiso individual">✓</button>
+                                                </form>
+                                                <span class="permiso-label">{{ nombre }}</span>
+                                                <span class="permiso-source">individual</span>
+                                            {% elif codename in data.permisos_activos %}
+                                                {# Permiso viene del rol — no se puede quitar individualmente #}
+                                                <span class="permiso-check from-role" title="Viene del rol {{ data.usuario.rol }}">✓</span>
+                                                <span class="permiso-label">{{ nombre }}</span>
+                                                <span class="permiso-source">rol</span>
+                                            {% else %}
+                                                {# Permiso inactivo — click para agregar #}
+                                                {% if data.usuario.pk != usuario_actual.pk %}
+                                                <form method="POST" action="{% url 'usuarios:toggle_permiso' %}" style="display:contents;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="user_id" value="{{ data.usuario.pk }}">
+                                                    <input type="hidden" name="codename" value="{{ codename }}">
+                                                    <button type="submit" class="permiso-check" title="Agregar permiso individual"></button>
+                                                </form>
+                                                {% else %}
+                                                <span class="permiso-check">—</span>
+                                                {% endif %}
+                                                <span class="permiso-label" style="color:#aaa;">{{ nombre }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="icon">👤</div>
+                                <p>No hay usuarios registrados.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══ TAB: SOLICITUDES ═══ -->
+    <div id="tab-solicitudes" class="tab-content">
+        <div class="section-card">
+            <div class="section-title">📩 Solicitudes de cambio de rol</div>
+
+            {% for sol in solicitudes %}
+            <div class="solicitud-card">
+                <div class="solicitud-header">
+                    <span class="solicitud-user">{{ sol.solicitante.get_full_name|default:sol.solicitante.username }}</span>
+                    <span class="solicitud-date">{{ sol.fecha_solicitud|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="solicitud-arrow">
+                    <span class="badge badge-{{ sol.rol_actual|lower }}">{{ sol.rol_actual }}</span>
+                    →
+                    <span class="badge badge-{{ sol.rol_solicitado|lower }}">{{ sol.rol_solicitado }}</span>
+                </div>
+                {% if sol.mensaje %}
+                <div class="solicitud-body">
+                    💬 "{{ sol.mensaje }}"
+                </div>
+                {% endif %}
+                <form method="POST" action="{% url 'usuarios:responder_solicitud' sol.pk %}">
+                    {% csrf_token %}
+                    <div class="solicitud-actions">
+                        <textarea name="respuesta" placeholder="Respuesta al usuario (opcional)..."></textarea>
+                        <button type="submit" name="accion" value="aprobar" class="btn btn-success">✅ Aprobar</button>
+                        <button type="submit" name="accion" value="rechazar" class="btn btn-danger">❌ Rechazar</button>
+                    </div>
+                </form>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <p>No hay solicitudes pendientes.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ═══ TAB: BITÁCORA ═══ -->
+    <div id="tab-bitacora" class="tab-content">
+        <div class="section-card">
+            <div class="section-title">🔍 Actividad reciente</div>
+
+            {% for ev in eventos %}
+            <div class="evento-item">
+                <div class="evento-icon {{ ev.tipo }}">
+                    {% if ev.tipo == 'cambio_rol' %}🔄
+                    {% elif ev.tipo == 'toggle_permiso' %}⚙️
+                    {% elif ev.tipo == 'toggle_activo' %}🔒
+                    {% elif ev.tipo == 'solicitud_creada' %}📩
+                    {% elif ev.tipo == 'solicitud_aprobada' %}✅
+                    {% elif ev.tipo == 'solicitud_rechazada' %}❌
+                    {% elif ev.tipo == 'login' %}🟢
+                    {% elif ev.tipo == 'logout' %}⚪
+                    {% else %}📋
+                    {% endif %}
+                </div>
+                <div class="evento-desc">
+                    <strong>{{ ev.usuario.username|default:"Sistema" }}</strong> — {{ ev.descripcion }}
+                </div>
+                <div class="evento-date">{{ ev.fecha|date:"d/m/Y H:i" }}</div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="icon">📋</div>
+                <p>Sin actividad registrada aún.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function switchTab(name) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        event.target.closest('.tab-btn').classList.add('active');
+    }
+
+    function togglePermisos(userId) {
+        const panel = document.getElementById('permisos-' + userId);
+        const arrow = document.getElementById('arrow-' + userId);
+        panel.classList.toggle('open');
+        arrow.textContent = panel.classList.contains('open') ? '▼' : '▶';
+    }
+
+    function toggleCreateForm() {
+        const form = document.getElementById('create-form');
+        const arrow = document.getElementById('create-arrow');
+        form.classList.toggle('open');
+        arrow.textContent = form.classList.contains('open') ? '▼' : '▶';
+    }
+</script>
+
+</body>
+</html>

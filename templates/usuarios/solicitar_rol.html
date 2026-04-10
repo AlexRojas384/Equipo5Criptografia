@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Cambio de Rol — Casa Monarca</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1a5276;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; }
+        .btn-back {
+            color: #aed6f1; text-decoration: none; font-size: 0.875rem;
+            border: 1px solid #aed6f1; padding: 0.3rem 0.75rem; border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .btn-back:hover { background: white; color: #1a5276; }
+
+        .container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header h2 {
+            color: #1a5276;
+            font-size: 1.4rem;
+        }
+        .page-header p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        /* Alertas */
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        .alert-success { background: #eafaf1; color: #1e8449; border-left: 4px solid #1e8449; }
+        .alert-error   { background: #fdecea; color: #c0392b; border-left: 4px solid #c0392b; }
+        .alert-warning { background: #fef9e7; color: #9a7d0a; border-left: 4px solid #f1c40f; }
+
+        /* Form card */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+            border-left: 4px solid #7d3c98;
+            margin-bottom: 2rem;
+        }
+        .form-card h3 {
+            color: #1a5276;
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .current-role {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-admin      { background: #922b21; color: white; }
+        .badge-voluntario { background: #2e86c1; color: white; }
+        .badge-junior     { background: #1e8449; color: white; }
+        .badge-auditor    { background: #ca6f1e; color: white; }
+        .badge-pendiente  { background: #fef9e7; color: #9a7d0a; border: 1px solid #f9e79f; }
+        .badge-aprobada   { background: #eafaf1; color: #1e8449; border: 1px solid #abebc6; }
+        .badge-rechazada  { background: #fdecea; color: #c0392b; border: 1px solid #f5b7b1; }
+
+        .form-group {
+            margin-bottom: 1.4rem;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.4rem;
+        }
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1a5276;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-group .help-text {
+            font-size: 0.78rem;
+            color: #999;
+            margin-top: 0.3rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.85rem;
+            background: #7d3c98;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover { background: #6c3483; }
+
+        /* Historial */
+        .history-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        }
+        .history-card h3 {
+            color: #1a5276;
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+        }
+
+        .hist-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f4f4f4;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        .hist-item:last-child { border-bottom: none; }
+
+        .hist-left {
+            flex: 1;
+        }
+        .hist-arrow {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+        .hist-msg {
+            font-size: 0.82rem;
+            color: #777;
+            margin-top: 0.3rem;
+        }
+        .hist-response {
+            font-size: 0.82rem;
+            color: #555;
+            margin-top: 0.3rem;
+            padding: 0.4rem 0.6rem;
+            background: #f9f9f9;
+            border-radius: 6px;
+            border-left: 3px solid #ddd;
+        }
+        .hist-right {
+            text-align: right;
+        }
+        .hist-date {
+            font-size: 0.75rem;
+            color: #bbb;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 1.5rem;
+            color: #bbb;
+        }
+        .empty-state .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="navbar-brand">🦋 Casa Monarca</div>
+    <a href="{% url 'expediente:dashboard' %}" class="btn-back">← Volver al dashboard</a>
+</nav>
+
+<div class="container">
+
+    <div class="page-header">
+        <h2>📋 Solicitar cambio de rol</h2>
+        <p>Envía una solicitud al administrador para cambiar tu rol en el sistema.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-error{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Formulario -->
+    <div class="form-card">
+        <h3>✉️ Nueva solicitud</h3>
+        <div class="current-role">
+            Tu rol actual:
+            <span class="badge badge-{{ usuario.rol|lower }}">{{ usuario.rol }}</span>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="rol_solicitado">Rol que deseas</label>
+                <select name="rol_solicitado" id="rol_solicitado" required>
+                    <option value="">— Selecciona un rol —</option>
+                    {% for val, label in roles %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="mensaje">Mensaje al administrador</label>
+                <textarea name="mensaje" id="mensaje"
+                          placeholder="Explica por qué necesitas este cambio de rol..."></textarea>
+                <p class="help-text">Explica brevemente tu justificación. El admin revisará tu solicitud.</p>
+            </div>
+
+            <button type="submit" class="btn-submit">📩 Enviar solicitud</button>
+        </form>
+    </div>
+
+    <!-- Historial -->
+    <div class="history-card">
+        <h3>📜 Historial de solicitudes</h3>
+
+        {% for sol in solicitudes %}
+        <div class="hist-item">
+            <div class="hist-left">
+                <div class="hist-arrow">
+                    <span class="badge badge-{{ sol.rol_actual|lower }}">{{ sol.rol_actual }}</span>
+                    →
+                    <span class="badge badge-{{ sol.rol_solicitado|lower }}">{{ sol.rol_solicitado }}</span>
+                    <span class="badge badge-{{ sol.estado }}">{{ sol.get_estado_display }}</span>
+                </div>
+                {% if sol.mensaje %}
+                <div class="hist-msg">💬 "{{ sol.mensaje }}"</div>
+                {% endif %}
+                {% if sol.respuesta_admin %}
+                <div class="hist-response">
+                    👤 Admin: "{{ sol.respuesta_admin }}"
+                </div>
+                {% endif %}
+            </div>
+            <div class="hist-right">
+                <div class="hist-date">{{ sol.fecha_solicitud|date:"d/m/Y H:i" }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="icon">📋</div>
+            <p>No has realizado solicitudes aún.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+</body>
+</html>

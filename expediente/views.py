@@ -7,10 +7,15 @@ from cripto.crypto import cifrar_datos, calcular_hash, firmar
 
 @login_required(login_url='usuarios:login')
 def dashboard(request):
-    return render(request, 'expediente/dashboard.html', {
+    context = {
         'usuario': request.user,
         'rol': request.user.rol,
-    })
+    }
+    # Si es Admin, contar solicitudes pendientes para mostrar badge
+    if request.user.rol == 'Admin':
+        from usuarios.models import SolicitudRol
+        context['solicitudes_pendientes'] = SolicitudRol.objects.filter(estado='pendiente').count()
+    return render(request, 'expediente/dashboard.html', context)
 
 @login_required(login_url='usuarios:login')
 def registrar_migrante(request):

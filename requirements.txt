@@ -1,0 +1,5 @@
+Django>=4.2.0
+django-environ>=0.10.0
+pycryptodome>=3.18.0
+pymysql>=1.1.0
+cryptography>=41.0.0

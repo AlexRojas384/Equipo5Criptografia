@@ -17,3 +17,25 @@ db.sqlite3
 # IDEs
 .vscode/
 .idea/
+
+# -------------------------------------------------------------
+# Agregados de seguridad (Criptografía y Archivos del SO)
+# -------------------------------------------------------------
+
+# Archivos de certificados o llaves privadas / públicas (por si exportas localmente)
+*.pem
+*.key
+*.crt
+*.cert
+
+# Archivos estáticos de despliegue y subidas locales de usuarios (expedientes en crudo por si acaso)
+media/
+staticfiles/
+
+# Archivos de caché del sistema operativo a ignorar (Mac / Windows)
+.DS_Store
+Thumbs.db
+
+# Cobertura de pruebas (por si a futuro meten testing automático)
+.coverage
+htmlcov/
