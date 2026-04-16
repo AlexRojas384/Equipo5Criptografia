@@ -11,6 +11,7 @@ from .models import Usuario, SolicitudRol
 from .permissions import TODOS_LOS_PERMISOS
 from .roles import ROLES
 from auditoria.models import BitacoraEvento
+from .decorators import rol_requerido
 
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
@@ -31,11 +32,6 @@ def _registrar_evento(request, tipo, descripcion):
         descripcion=descripcion,
         ip=_get_client_ip(request),
     )
-
-
-def _es_admin(user):
-    """Verifica si el usuario es Admin."""
-    return user.is_authenticated and user.rol == 'Admin'
 
 
 # ─── Login / Logout ─────────────────────────────────────────────────────────
@@ -85,12 +81,9 @@ def logout_view(request):
 
 # ─── Panel de admin ──────────────────────────────────────────────────────────
 
-@login_required(login_url='usuarios:login')
+@rol_requerido('Admin')
 def admin_panel(request):
     """Panel principal de gestión de usuarios — solo Admin."""
-    if not _es_admin(request.user):
-        messages.error(request, 'No tienes permisos para acceder a esta sección.')
-        return redirect('expediente:dashboard')
 
     usuarios = Usuario.objects.all().order_by('username')
     solicitudes_pendientes = SolicitudRol.objects.filter(estado='pendiente')
@@ -103,10 +96,15 @@ def admin_panel(request):
         permisos_grupo = Permission.objects.filter(group__user=u).values_list('codename', flat=True)
         todos = set(permisos_usuario) | set(permisos_grupo)
 
+        cert_expirado = False
+        if u.certificado_digital and u.fecha_expiracion_certificado:
+            cert_expirado = u.fecha_expiracion_certificado < timezone.now()
+
         usuarios_data.append({
             'usuario': u,
             'permisos_activos': todos,
             'permisos_individuales': set(permisos_usuario),
+            'cert_expirado': cert_expirado,
         })
 
     return render(request, 'usuarios/admin_panel.html', {
@@ -122,12 +120,9 @@ def admin_panel(request):
 
 # ─── Cambiar rol ─────────────────────────────────────────────────────────────
 
-@login_required(login_url='usuarios:login')
+@rol_requerido('Admin')
 def cambiar_rol(request, pk):
     """Cambia el rol de un usuario — solo Admin, vía POST."""
-    if not _es_admin(request.user):
-        messages.error(request, 'Acción no permitida.')
-        return redirect('expediente:dashboard')
 
     if request.method != 'POST':
         return redirect('usuarios:admin_panel')
@@ -155,12 +150,9 @@ def cambiar_rol(request, pk):
 
 # ─── Toggle permiso individual ───────────────────────────────────────────────
 
-@login_required(login_url='usuarios:login')
+@rol_requerido('Admin')
 def toggle_permiso(request):
     """Activa/desactiva un permiso individual para un usuario — solo Admin, vía POST."""
-    if not _es_admin(request.user):
-        messages.error(request, 'Acción no permitida.')
-        return redirect('expediente:dashboard')
 
     if request.method != 'POST':
         return redirect('usuarios:admin_panel')
@@ -193,12 +185,9 @@ def toggle_permiso(request):
 
 # ─── Toggle activo/inactivo ──────────────────────────────────────────────────
 
-@login_required(login_url='usuarios:login')
+@rol_requerido('Admin')
 def toggle_activo(request, pk):
     """Activa/desactiva la cuenta de un usuario — solo Admin, vía POST."""
-    if not _es_admin(request.user):
-        messages.error(request, 'Acción no permitida.')
-        return redirect('expediente:dashboard')
 
     if request.method != 'POST':
         return redirect('usuarios:admin_panel')
@@ -274,12 +263,9 @@ def solicitar_rol(request):
 
 # ─── Responder solicitud (aprobar/rechazar) ──────────────────────────────────
 
-@login_required(login_url='usuarios:login')
+@rol_requerido('Admin')
 def responder_solicitud(request, pk):
     """El admin aprueba o rechaza una solicitud de cambio de rol — vía POST."""
-    if not _es_admin(request.user):
-        messages.error(request, 'Acción no permitida.')
-        return redirect('expediente:dashboard')
 
     if request.method != 'POST':
         return redirect('usuarios:admin_panel')
@@ -329,13 +315,9 @@ def responder_solicitud(request, pk):
 
 # ─── Crear usuario (admin) ───────────────────────────────────────────────────
 
-@login_required(login_url='usuarios:login')
+@rol_requerido('Admin')
 def crear_usuario(request):
     """El admin crea un nuevo usuario con username, contraseña, rol y llaves RSA."""
-    if not _es_admin(request.user):
-        messages.error(request, 'Acción no permitida.')
-        return redirect('expediente:dashboard')
-
     if request.method != 'POST':
         return redirect('usuarios:admin_panel')
 
@@ -363,9 +345,10 @@ def crear_usuario(request):
         messages.error(request, f'Rol inválido: {rol}')
         return redirect('usuarios:admin_panel')
 
-    # Generar llaves RSA
-    from cripto.crypto import generar_par_llaves
+    # Generar llaves y certificados RSA 
+    from cripto.crypto import generar_par_llaves, generar_certificado
     llave_privada, llave_publica = generar_par_llaves()
+    certificado_pem, expiracion = generar_certificado(llave_privada, llave_publica, username)
 
     # Crear usuario
     nuevo_usuario = Usuario.objects.create_user(
@@ -377,6 +360,8 @@ def crear_usuario(request):
         activo=True,
         llave_publica=llave_publica,
         llave_privada=llave_privada,
+        certificado_digital=certificado_pem,
+        fecha_expiracion_certificado=expiracion,
     )
     nuevo_usuario.asignar_rol()
 
@@ -385,6 +370,32 @@ def crear_usuario(request):
         f'Creó nuevo usuario: {username} con rol {rol}'
     )
     messages.success(request, f'Usuario "{username}" creado exitosamente con rol {rol}.')
+    return redirect('usuarios:admin_panel')
+
+
+@rol_requerido('Admin')
+def regenerar_identidad(request, pk):
+    """Regenera llaves y certificado para un usuario existente — solo Admin."""
+    if request.method != 'POST':
+        return redirect('usuarios:admin_panel')
+
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    from cripto.crypto import generar_par_llaves, generar_certificado
+    llave_privada, llave_publica = generar_par_llaves()
+    certificado_pem, expiracion = generar_certificado(llave_privada, llave_publica, usuario.username)
+
+    usuario.llave_publica = llave_publica
+    usuario.llave_privada = llave_privada
+    usuario.certificado_digital = certificado_pem
+    usuario.fecha_expiracion_certificado = expiracion
+    usuario.save()
+
+    _registrar_evento(
+        request, 'cambio_rol',
+        f'Regeneró identidad criptográfica para {usuario.username}'
+    )
+    messages.success(request, f'Identidad criptográfica de {usuario.username} restablecida correctamente.')
     return redirect('usuarios:admin_panel')
 
 

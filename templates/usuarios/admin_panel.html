@@ -572,6 +572,7 @@
                         <th>Nombre completo</th>
                         <th>Rol</th>
                         <th>Estado</th>
+                        <th>Criptografía</th>
                         <th>Cambiar rol</th>
                         <th>Acciones</th>
                     </tr>
@@ -597,6 +598,31 @@
                             {% else %}
                             <span class="badge badge-inactivo">Inactivo</span>
                             {% endif %}
+                        </td>
+                        <td>
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                {% if data.usuario.llave_privada and data.usuario.llave_publica %}
+                                    <span class="badge" style="background: #1e8449; color: white; display:block;" title="Cifrado transparente activo">Llaves OK</span>
+                                {% else %}
+                                    <span class="badge" style="background: #f1c40f; color: #333; display:block;" title="No hay llaves RSA">Sin llaves</span>
+                                {% endif %}
+                                {% if data.usuario.certificado_digital %}
+                                    {% if data.cert_expirado %}
+                                        <span class="badge" style="background: #c0392b; color: white; display:block;" title="Certificado expirado">🔴 Expiró {{ data.usuario.fecha_expiracion_certificado|date:"d/m/Y" }}</span>
+                                    {% else %}
+                                        <span class="badge" style="background: #1e8449; color: white; display:block;" title="Certificado válido">🟢 Vence {{ data.usuario.fecha_expiracion_certificado|date:"d/m/Y" }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge" style="background: #922b21; color: white; display:block;">Sin Cert</span>
+                                {% endif %}
+                                
+                                <form method="POST" action="{% url 'usuarios:regenerar_identidad' data.usuario.pk %}" style="margin-top:4px;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline btn-sm" style="width:100%; font-size:0.65rem;" title="Generar nuevas llaves y certificado">
+                                        ⚡ Reset Identidad
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                         <td>
                             {% if data.usuario.pk != usuario_actual.pk %}
@@ -634,7 +660,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="6" style="padding:0;">
+                        <td colspan="7" style="padding:0;">
                             <div id="permisos-{{ data.usuario.pk }}" class="permisos-panel">
                                 <div style="padding: 0.5rem 1rem;">
                                     <div style="font-size:0.78rem; color:#999; margin-bottom:0.5rem;">
@@ -681,7 +707,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <div class="empty-state">
                                 <div class="icon">👤</div>
                                 <p>No hay usuarios registrados.</p>

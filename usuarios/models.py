@@ -1,5 +1,32 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from cripto.crypto import encriptar_valor_db, desencriptar_valor_db
+
+class EncryptedCharField(models.CharField):
+    def get_prep_value(self, value):
+        value = super().get_prep_value(value)
+        return encriptar_valor_db(value)
+
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        return desencriptar_valor_db(value)
+
+    def to_python(self, value):
+        return super().to_python(value)
+
+class EncryptedTextField(models.TextField):
+    def get_prep_value(self, value):
+        value = super().get_prep_value(value)
+        return encriptar_valor_db(value)
+
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        return desencriptar_valor_db(value)
+
+    def to_python(self, value):
+        return super().to_python(value)
 
 
 class Usuario(AbstractUser):
@@ -11,10 +38,12 @@ class Usuario(AbstractUser):
     ]
 
     rol           = models.CharField(max_length=20, choices=ROLES, default='Junior')
-    telefono      = models.CharField(max_length=20, blank=True, null=True)
+    telefono      = EncryptedCharField(max_length=200, blank=True, null=True)
     activo        = models.BooleanField(default=True)
     llave_publica = models.TextField(blank=True, null=True)  # RSA pública
-    llave_privada = models.TextField(blank=True, null=True)  # RSA privada (cifrada)
+    llave_privada = EncryptedTextField(blank=True, null=True)  # RSA privada encriptada transparente
+    certificado_digital = models.TextField(blank=True, null=True)  # Certificado X.509
+    fecha_expiracion_certificado = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.username} ({self.rol})"
