@@ -107,6 +107,10 @@ def admin_panel(request):
             'cert_expirado': cert_expirado,
         })
 
+    # Extraer llave de firma de la sesión (se muestra una sola vez)
+    llave_firma_generada = request.session.pop('llave_firma_generada', None)
+    llave_firma_usuario = request.session.pop('llave_firma_usuario', None)
+
     return render(request, 'usuarios/admin_panel.html', {
         'usuarios_data': usuarios_data,
         'solicitudes': solicitudes_pendientes,
@@ -115,6 +119,8 @@ def admin_panel(request):
         'todos_los_permisos': TODOS_LOS_PERMISOS,
         'roles_config': ROLES,
         'usuario_actual': request.user,
+        'llave_firma_generada': llave_firma_generada,
+        'llave_firma_usuario': llave_firma_usuario,
     })
 
 
@@ -345,10 +351,11 @@ def crear_usuario(request):
         messages.error(request, f'Rol inválido: {rol}')
         return redirect('usuarios:admin_panel')
 
-    # Generar llaves y certificados RSA 
-    from cripto.crypto import generar_par_llaves, generar_certificado
-    llave_privada, llave_publica = generar_par_llaves()
-    certificado_pem, expiracion = generar_certificado(llave_privada, llave_publica, username)
+    # Generar llave de firma (passphrase) y llaves RSA cifradas
+    from cripto.crypto import generar_llave_firma, generar_par_llaves, generar_certificado
+    llave_firma = generar_llave_firma()
+    llave_privada, llave_publica = generar_par_llaves(passphrase=llave_firma)
+    certificado_pem, expiracion = generar_certificado(llave_privada, llave_publica, username, passphrase=llave_firma)
 
     # Crear usuario
     nuevo_usuario = Usuario.objects.create_user(
@@ -369,6 +376,11 @@ def crear_usuario(request):
         request, 'cambio_rol',
         f'Creó nuevo usuario: {username} con rol {rol}'
     )
+
+    # Guardar la llave de firma en la sesión para mostrarla UNA sola vez en el modal
+    request.session['llave_firma_generada'] = llave_firma
+    request.session['llave_firma_usuario'] = username
+
     messages.success(request, f'Usuario "{username}" creado exitosamente con rol {rol}.')
     return redirect('usuarios:admin_panel')
 
@@ -381,9 +393,10 @@ def regenerar_identidad(request, pk):
 
     usuario = get_object_or_404(Usuario, pk=pk)
 
-    from cripto.crypto import generar_par_llaves, generar_certificado
-    llave_privada, llave_publica = generar_par_llaves()
-    certificado_pem, expiracion = generar_certificado(llave_privada, llave_publica, usuario.username)
+    from cripto.crypto import generar_llave_firma, generar_par_llaves, generar_certificado
+    llave_firma = generar_llave_firma()
+    llave_privada, llave_publica = generar_par_llaves(passphrase=llave_firma)
+    certificado_pem, expiracion = generar_certificado(llave_privada, llave_publica, usuario.username, passphrase=llave_firma)
 
     usuario.llave_publica = llave_publica
     usuario.llave_privada = llave_privada
@@ -395,9 +408,37 @@ def regenerar_identidad(request, pk):
         request, 'cambio_rol',
         f'Regeneró identidad criptográfica para {usuario.username}'
     )
+
+    # Guardar la llave de firma en la sesión para mostrarla UNA sola vez en el modal
+    request.session['llave_firma_generada'] = llave_firma
+    request.session['llave_firma_usuario'] = usuario.username
+
     messages.success(request, f'Identidad criptográfica de {usuario.username} restablecida correctamente.')
     return redirect('usuarios:admin_panel')
 
+
+@rol_requerido('Admin')
+def revocar_certificado(request, pk):
+    """Revoca (elimina) el certificado y llaves de un usuario — solo Admin."""
+    if request.method != 'POST':
+        return redirect('usuarios:admin_panel')
+
+    usuario = get_object_or_404(Usuario, pk=pk)
+
+    # Limpiar campos criptográficos
+    usuario.llave_publica = None
+    usuario.llave_privada = None
+    usuario.certificado_digital = None
+    usuario.fecha_expiracion_certificado = None
+    usuario.save()
+
+    _registrar_evento(
+        request, 'cambio_rol',
+        f'Revocó certificado e identidad criptográfica para {usuario.username}'
+    )
+
+    messages.success(request, f'Certificado de {usuario.username} revocado exitosamente.')
+    return redirect('usuarios:admin_panel')
 
 # ─── Cambiar contraseña ──────────────────────────────────────────────────────
 

@@ -6,6 +6,7 @@ import hashlib
 import os
 import base64
 import json
+import secrets
 import datetime
 from cryptography import x509
 from cryptography.x509.oid import NameOID
@@ -16,21 +17,52 @@ from django.conf import settings
 
 # ─── RSA ────────────────────────────────────────────────────────────────────
 
-def generar_par_llaves():
-    """Genera un par de llaves RSA-4096. Retorna (privada_pem, publica_pem)."""
+def generar_llave_firma():
+    """Genera una llave de firma (passphrase) aleatoria de 64 caracteres hexadecimales."""
+    return secrets.token_hex(32)
+
+
+def generar_par_llaves(passphrase: str = None):
+    """
+    Genera un par de llaves RSA-4096.
+    Si se proporciona passphrase, la llave privada se exporta cifrada con ella (PKCS8 + scrypt + AES-256-CBC).
+    Retorna (privada_pem, publica_pem).
+    """
     key = RSA.generate(4096)
-    privada = key.export_key().decode('utf-8')
+    if passphrase:
+        privada = key.export_key(
+            passphrase=passphrase,
+            pkcs=8,
+            protection='scryptAndAES256-CBC'
+        ).decode('utf-8')
+    else:
+        privada = key.export_key().decode('utf-8')
     publica = key.publickey().export_key().decode('utf-8')
     return privada, publica
 
 
-def generar_certificado(privada_pem: str, publica_pem: str, username: str):
+def desbloquear_llave_privada(privada_pem_cifrada: str, passphrase: str) -> str:
+    """
+    Intenta descifrar una llave privada PEM protegida con passphrase.
+    Retorna la llave privada PEM descifrada (en memoria).
+    Lanza ValueError si la passphrase es incorrecta.
+    """
+    try:
+        key = RSA.import_key(privada_pem_cifrada, passphrase=passphrase)
+        return key.export_key().decode('utf-8')
+    except (ValueError, TypeError) as e:
+        raise ValueError('Llave de firma incorrecta.') from e
+
+
+def generar_certificado(privada_pem: str, publica_pem: str, username: str, passphrase: str = None):
     """
     Genera un certificado X.509 real (self-signed) para un usuario dado.
+    Si la llave privada está cifrada con passphrase, se debe proporcionar.
     Retorna (certificado_pem_str, expiracion_datetime)
     """
     # Parsear las llaves a objetos de cryptography
-    private_key = serialization.load_pem_private_key(privada_pem.encode('utf-8'), password=None)
+    pwd = passphrase.encode('utf-8') if passphrase else None
+    private_key = serialization.load_pem_private_key(privada_pem.encode('utf-8'), password=pwd)
     public_key = serialization.load_pem_public_key(publica_pem.encode('utf-8'))
     
     subject = issuer = x509.Name([

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from usuarios.models import Usuario
-from cripto.crypto import generar_par_llaves, generar_certificado
+from cripto.crypto import generar_llave_firma, generar_par_llaves, generar_certificado
 from auditoria.models import BitacoraEvento
 from django.utils import timezone
 
@@ -19,8 +19,9 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.WARNING(f'Regenerando llaves y certificado para "{username}"...'))
 
-        priv, pub = generar_par_llaves()
-        cert, exp = generar_certificado(priv, pub, usuario.username)
+        llave_firma = generar_llave_firma()
+        priv, pub = generar_par_llaves(passphrase=llave_firma)
+        cert, exp = generar_certificado(priv, pub, usuario.username, passphrase=llave_firma)
 
         usuario.llave_privada = priv
         usuario.llave_publica = pub
@@ -37,4 +38,13 @@ class Command(BaseCommand):
             ip='127.0.0.1',
         )
 
-        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Identidad de "{username}" restablecida. Expira: {exp.strftime("%Y-%m-%d")}'))
+        self.stdout.write(self.style.SUCCESS(f'Exito! Identidad de "{username}" restablecida. Expira: {exp.strftime("%Y-%m-%d")}'))
+        self.stdout.write('')
+        self.stdout.write(self.style.WARNING('=' * 60))
+        self.stdout.write(self.style.WARNING('  LLAVE DE FIRMA (guardar y entregar al usuario)'))
+        self.stdout.write(self.style.WARNING('=' * 60))
+        self.stdout.write(self.style.SUCCESS(f'  {llave_firma}'))
+        self.stdout.write(self.style.WARNING('=' * 60))
+        self.stdout.write(self.style.WARNING('  IMPORTANTE: Esta llave NO se almacena. Copiela AHORA.'))
+        self.stdout.write(self.style.WARNING('=' * 60))
+

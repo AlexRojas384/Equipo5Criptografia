@@ -203,8 +203,25 @@
             {% endfor %}
 
             <hr class="divider">
-            <button type="submit" class="btn-submit">Guardar expediente cifrado 🔒</button>
-            <p class="lock-notice">🔐 Los datos serán cifrados con AES-256 + RSA-4096 antes de guardarse.</p>
+
+            <!-- Campo de llave de firma -->
+            <div style="
+                background: #eaf2f8; border: 2px solid #2e86c1; border-radius: 10px;
+                padding: 1.25rem; margin-bottom: 1rem;
+            ">
+                <label for="llave_firma" style="color: #1a5276; font-size: 0.95rem; font-weight: 700; display:flex; align-items:center; gap:0.4rem; margin-bottom: 0.5rem;">
+                    🔑 Llave de firma
+                </label>
+                <input type="password" name="llave_firma" id="llave_firma" required
+                       placeholder="Ingresa tu llave de firma de 64 caracteres"
+                       style="width:100%; padding:0.7rem 1rem; border:1px solid #2e86c1; border-radius:8px; font-size:0.95rem; font-family:'Consolas','Courier New',monospace; background:white;">
+                <p style="font-size:0.78rem; color:#1a5276; margin-top:0.4rem;">
+                    Ingresa la llave de firma que te proporcionó el administrador para autorizar este expediente.
+                </p>
+            </div>
+
+            <button type="submit" class="btn-submit">Firmar y guardar expediente 🔒</button>
+            <p class="lock-notice">🔐 Los datos serán cifrados con AES-256 + RSA-4096 y firmados digitalmente con tu llave.</p>
         </form>
     </div>
 </div>

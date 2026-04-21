@@ -495,16 +495,16 @@
 
     <!-- Tabs -->
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('usuarios')">
+        <button class="tab-btn active" onclick="switchTab('usuarios', event)">
             👤 Usuarios
         </button>
-        <button class="tab-btn" onclick="switchTab('solicitudes')">
+        <button class="tab-btn" onclick="switchTab('solicitudes', event)">
             📩 Solicitudes
             {% if solicitudes %}
             <span class="tab-badge">{{ solicitudes|length }}</span>
             {% endif %}
         </button>
-        <button class="tab-btn" onclick="switchTab('bitacora')">
+        <button class="tab-btn" onclick="switchTab('bitacora', event)">
             🔍 Bitácora
         </button>
     </div>
@@ -642,20 +642,30 @@
                             {% endif %}
                         </td>
                         <td>
-                            <div style="display:flex; gap:0.4rem; align-items:center;">
-                                {% if data.usuario.pk != usuario_actual.pk %}
-                                <form method="POST" action="{% url 'usuarios:toggle_activo' data.usuario.pk %}">
+                            <div style="display:flex; flex-direction:column; gap:0.4rem; align-items:center;">
+                                <div style="display:flex; gap:0.4rem; align-items:center;">
+                                    {% if data.usuario.pk != usuario_actual.pk %}
+                                    <form method="POST" action="{% url 'usuarios:toggle_activo' data.usuario.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-toggle {% if data.usuario.activo %}btn-danger{% else %}btn-success{% endif %}"
+                                                title="{% if data.usuario.activo %}Desactivar{% else %}Activar{% endif %}">
+                                            {% if data.usuario.activo %}🔒{% else %}🔓{% endif %}
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <span class="permisos-toggle" onclick="togglePermisos('{{ data.usuario.pk }}')">
+                                        ⚙️ Permisos <span id="arrow-{{ data.usuario.pk }}">▶</span>
+                                    </span>
+                                </div>
+                                {% if data.usuario.pk != usuario_actual.pk and data.usuario.certificado_digital %}
+                                <form method="POST" action="{% url 'usuarios:revocar_certificado' data.usuario.pk %}" onsubmit="return confirm('¿Seguro que deseas revocar el certificado de este usuario?');" style="width:100%;">
                                     {% csrf_token %}
-                                    <button type="submit"
-                                            class="btn btn-toggle {% if data.usuario.activo %}btn-danger{% else %}btn-success{% endif %}"
-                                            title="{% if data.usuario.activo %}Desactivar{% else %}Activar{% endif %}">
-                                        {% if data.usuario.activo %}🔒{% else %}🔓{% endif %}
+                                    <button type="submit" class="btn btn-danger btn-sm" style="width:100%; font-size:0.65rem;" title="Quitar certificado y llaves">
+                                        🗑️ Revocar Cert.
                                     </button>
                                 </form>
                                 {% endif %}
-                                <span class="permisos-toggle" onclick="togglePermisos('{{ data.usuario.pk }}')">
-                                    ⚙️ Permisos <span id="arrow-{{ data.usuario.pk }}">▶</span>
-                                </span>
                             </div>
                         </td>
                     </tr>
@@ -795,27 +805,134 @@
 </div>
 
 <script>
-    function switchTab(name) {
+    function switchTab(name, ev) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-' + name).classList.add('active');
-        event.target.closest('.tab-btn').classList.add('active');
+        if (ev && ev.currentTarget) {
+            ev.currentTarget.classList.add('active');
+        } else if (ev && ev.target) {
+            ev.target.closest('.tab-btn').classList.add('active');
+        }
     }
 
     function togglePermisos(userId) {
         const panel = document.getElementById('permisos-' + userId);
         const arrow = document.getElementById('arrow-' + userId);
-        panel.classList.toggle('open');
-        arrow.textContent = panel.classList.contains('open') ? '▼' : '▶';
+        if (panel) panel.classList.toggle('open');
+        if (arrow) arrow.textContent = panel.classList.contains('open') ? '▼' : '▶';
     }
 
     function toggleCreateForm() {
         const form = document.getElementById('create-form');
         const arrow = document.getElementById('create-arrow');
-        form.classList.toggle('open');
-        arrow.textContent = form.classList.contains('open') ? '▼' : '▶';
+        if (form) form.classList.toggle('open');
+        if (arrow) arrow.textContent = form.classList.contains('open') ? '▼' : '▶';
+    }
+
+    // ─── Modal de llave de firma ─────────────────────────────────
+    function cerrarModalLlave() {
+        const modal = document.getElementById('modal-llave-firma');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function copiarLlave() {
+        const element = document.getElementById('llave-firma-valor');
+        if (!element) return;
+        const llave = element.textContent;
+        navigator.clipboard.writeText(llave).then(() => {
+            const btn = document.getElementById('btn-copiar-llave');
+            if (!btn) return;
+            btn.textContent = '✅ ¡Copiada!';
+            btn.style.background = '#1e8449';
+            setTimeout(() => {
+                btn.textContent = '📋 Copiar llave';
+                btn.style.background = '#2e86c1';
+            }, 2000);
+        });
     }
 </script>
 
+{% if llave_firma_generada %}
+<script>
+    // Auto-abrir el modal si hay llave generada
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('modal-llave-firma');
+        if (modal) modal.style.display = 'flex';
+    });
+</script>
+{% endif %}
+
+{% if llave_firma_generada %}
+<!-- Modal de entrega de llave de firma -->
+<div id="modal-llave-firma" style="
+    display: none;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    z-index: 9999; align-items: center; justify-content: center;
+">
+    <div style="
+        background: white; border-radius: 16px; padding: 2rem;
+        max-width: 600px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: fadeIn 0.3s ease;
+    ">
+        <div style="text-align:center; margin-bottom: 1.5rem;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔑</div>
+            <h2 style="color: #1a5276; font-size: 1.3rem; margin-bottom: 0.3rem;">
+                Llave de Firma Generada
+            </h2>
+            <p style="color: #666; font-size: 0.88rem;">
+                Para el usuario: <strong style="color: #1a5276;">{{ llave_firma_usuario }}</strong>
+            </p>
+        </div>
+
+        <div style="
+            background: #fef9e7; border: 2px solid #f1c40f; border-radius: 10px;
+            padding: 1rem; margin-bottom: 1.25rem;
+        ">
+            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                <span style="font-size:1.1rem;">⚠️</span>
+                <strong style="color:#9a7d0a; font-size:0.88rem;">IMPORTANTE — Solo se muestra una vez</strong>
+            </div>
+            <p style="color:#7d6608; font-size:0.82rem; margin:0;">
+                Esta llave <strong>no se almacena</strong> en el sistema y <strong>no podrá recuperarse</strong>.
+                Cópiela y entréguela de forma segura (en persona) al usuario.
+                Sin ella, no podrá firmar expedientes.
+            </p>
+        </div>
+
+        <div style="
+            background: #1a1a2e; border-radius: 10px; padding: 1.2rem;
+            margin-bottom: 1.25rem; position: relative;
+        ">
+            <p style="color: #aaa; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                Llave de firma (64 caracteres)
+            </p>
+            <code id="llave-firma-valor" style="
+                display: block; color: #00ff88; font-size: 0.82rem;
+                font-family: 'Consolas', 'Courier New', monospace;
+                word-break: break-all; line-height: 1.6;
+                background: #0d0d1a; padding: 0.8rem; border-radius: 6px;
+                border: 1px solid #333;
+            ">{{ llave_firma_generada }}</code>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <button id="btn-copiar-llave" onclick="copiarLlave()" style="
+                padding: 0.7rem 1.5rem; background: #2e86c1; color: white;
+                border: none; border-radius: 8px; font-size: 0.9rem;
+                font-weight: 600; cursor: pointer; transition: background 0.2s;
+            ">📋 Copiar llave</button>
+            <button onclick="cerrarModalLlave()" style="
+                padding: 0.7rem 1.5rem; background: #1e8449; color: white;
+                border: none; border-radius: 8px; font-size: 0.9rem;
+                font-weight: 600; cursor: pointer; transition: background 0.2s;
+            ">✅ Entendido, ya la copié</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 </body>
 </html>
+

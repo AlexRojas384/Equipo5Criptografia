@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import EntrevistaForm
 from .models import Expediente
-from cripto.crypto import cifrar_datos, calcular_hash, firmar
+from cripto.crypto import cifrar_datos, calcular_hash, firmar, desbloquear_llave_privada
 from usuarios.decorators import certificado_requerido
 
 @login_required(login_url='usuarios:login')
@@ -59,23 +59,35 @@ def registrar_migrante(request):
         form = EntrevistaForm(request.POST)
         if form.is_valid():
             usuario = request.user
+            llave_firma = request.POST.get('llave_firma', '')
 
-            # 1. Recopilar datos del formulario
+            # 1. Validar la llave de firma (desbloquear la llave privada)
+            if not llave_firma:
+                messages.error(request, '❌ Debes ingresar tu llave de firma para autorizar el expediente.')
+                return render(request, 'expediente/formulario.html', {'form': form})
+
+            try:
+                llave_privada_descifrada = desbloquear_llave_privada(usuario.llave_privada, llave_firma)
+            except ValueError:
+                messages.error(request, '❌ Llave de firma incorrecta. Verifica e intenta de nuevo.')
+                return render(request, 'expediente/formulario.html', {'form': form})
+
+            # 2. Recopilar datos del formulario
             datos = form.cleaned_data
             # Convertir fechas a string para poder cifrarlas
             datos['fecha_atencion']   = str(datos['fecha_atencion'])
             datos['fecha_nacimiento'] = str(datos['fecha_nacimiento'])
 
-            # 2. Cifrar con AES-256 + RSA-4096
+            # 3. Cifrar con AES-256 + RSA-4096
             paquete = cifrar_datos(datos, usuario.llave_publica)
 
-            # 3. Calcular hash del expediente cifrado
+            # 4. Calcular hash del expediente cifrado
             hash_exp = calcular_hash(paquete['datos_cifrados'])
 
-            # 4. Firma digital del colaborador
-            firma = firmar(hash_exp, usuario.llave_privada)
+            # 5. Firma digital del colaborador (con la llave desbloqueada)
+            firma = firmar(hash_exp, llave_privada_descifrada)
 
-            # 5. Guardar en BD
+            # 6. Guardar en BD
             Expediente.objects.create(
                 creado_por        = usuario,
                 fecha_atencion    = datos['fecha_atencion'],
@@ -87,7 +99,7 @@ def registrar_migrante(request):
                 hash_expediente   = hash_exp,
             )
 
-            messages.success(request, 'Expediente registrado y cifrado correctamente.')
+            messages.success(request, '✅ Expediente registrado, cifrado y firmado correctamente.')
             return redirect('expediente:dashboard')
     else:
         form = EntrevistaForm()
