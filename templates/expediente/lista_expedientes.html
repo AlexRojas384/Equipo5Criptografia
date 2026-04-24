@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expedientes — Casa Monarca</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .navbar { background: #1a5276; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; }
+        .btn-back { color: #aed6f1; text-decoration: none; font-size: 0.875rem; border: 1px solid #aed6f1; padding: 0.3rem 0.75rem; border-radius: 6px; }
+        .btn-back:hover { background: white; color: #1a5276; }
+
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+
+        .header-section { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        h2 { color: #1a5276; }
+
+        .filters {
+            background: white; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;
+        }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 0.3rem; }
+        .filter-group select, .filter-group input { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
+        .btn-filter { background: #1a5276; color: white; border: none; padding: 0.55rem 1rem; border-radius: 4px; cursor: pointer; }
+        .btn-filter:hover { background: #154360; }
+        .btn-clear { background: #e5e7e9; color: #555; border: none; padding: 0.55rem 1rem; border-radius: 4px; text-decoration: none; font-size: 0.9rem; }
+
+        .table-card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 2rem;}
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        th { background: #f8f9fa; color: #333; font-weight: 600; }
+        tr:hover { background: #fbfcfd; }
+
+        .badge-verificado { background: #eafaf1; color: #1e8449; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge-pendiente { background: #fef5e7; color: #d68910; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+
+        .alert-success { background: #eafaf1; color: #1e8449; border-left: 4px solid #1e8449; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+        .alert-error { background: #fdecea; color: #c0392b; border-left: 4px solid #c0392b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+        .alert-warning { background: #fef5e7; color: #d68910; border-left: 4px solid #d68910; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+
+        /* Estilos para el formulario de validación al fondo */
+        .validation-bar {
+            background: #eaf2f8; padding: 1.5rem; border-radius: 8px; border: 1px solid #aed6f1;
+            display: flex; gap: 1rem; align-items: center; justify-content: flex-end;
+        }
+        .validation-bar input[type="password"] {
+            padding: 0.7rem; border: 1px solid #2e86c1; border-radius: 4px; font-family: monospace; width: 300px;
+        }
+        .btn-validate {
+            background: #1e8449; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; font-weight: bold; cursor: pointer;
+        }
+        .btn-validate:hover { background: #196f3d; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="navbar-brand">🦋 Casa Monarca</div>
+    <a href="{% url 'expediente:dashboard' %}" class="btn-back">← Volver al Dashboard</a>
+</nav>
+
+<div class="container">
+    <div class="header-section">
+        <h2>🗂️ {% if puede_verificar %}Todos los Expedientes{% else %}Mis Expedientes{% endif %}</h2>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="GET" class="filters">
+        <div class="filter-group">
+            <label>Estado de Verificación</label>
+            <select name="verificado">
+                <option value="">Todos</option>
+                <option value="si" {% if filtro_verificado == 'si' %}selected{% endif %}>Verificados</option>
+                <option value="no" {% if filtro_verificado == 'no' %}selected{% endif %}>Pendientes</option>
+            </select>
+        </div>
+        
+        {% if puede_verificar %}
+        <div class="filter-group">
+            <label>Creado por</label>
+            <select name="creador">
+                <option value="">Todos</option>
+                {% for c in creadores %}
+                    <option value="{{ c }}" {% if filtro_creador == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        <div class="filter-group">
+            <label>Fecha Desde</label>
+            <input type="date" name="fecha_desde" value="{{ filtro_fecha_desde }}">
+        </div>
+        <div class="filter-group">
+            <label>Fecha Hasta</label>
+            <input type="date" name="fecha_hasta" value="{{ filtro_fecha_hasta }}">
+        </div>
+
+        <button type="submit" class="btn-filter">Filtrar</button>
+        <a href="{% url 'expediente:lista_expedientes' %}" class="btn-clear">Limpiar</a>
+    </form>
+
+    <form method="POST" action="{% url 'expediente:verificar_expedientes' %}">
+        {% csrf_token %}
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        {% if puede_verificar %}
+                        <th width="50">Validar</th>
+                        {% endif %}
+                        <th>ID</th>
+                        <th>Fecha Atención</th>
+                        <th>Nombre Completo</th>
+                        <th>Género</th>
+                        <th>País de Origen</th>
+                        <th>Creado por</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in expedientes_data %}
+                        <tr>
+                            {% if puede_verificar %}
+                            <td>
+                                {% if not item.expediente.verificado and item.datos %}
+                                <input type="checkbox" name="expedientes_verificar" value="{{ item.expediente.pk }}">
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                            <td>#{{ item.expediente.pk }}</td>
+                            <td>{{ item.expediente.fecha_atencion }}</td>
+                            
+                            {% if item.datos %}
+                                <td>{{ item.datos.nombre_pila }} {{ item.datos.primer_apellido }} {{ item.datos.segundo_apellido }}</td>
+                                <td>{{ item.datos.genero }}</td>
+                                <td>{{ item.datos.pais_origen }}</td>
+                            {% else %}
+                                <td colspan="3" style="color: #c0392b; font-style: italic;">
+                                    🔒 Datos encriptados (No tienes acceso a esta llave)
+                                </td>
+                            {% endif %}
+
+                            <td>{{ item.expediente.creado_por.username }}</td>
+                            <td>
+                                {% if item.expediente.verificado %}
+                                    <span class="badge-verificado">✔ Verificado</span>
+                                {% else %}
+                                    <span class="badge-pendiente">⏳ Pendiente</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="{% if puede_verificar %}8{% else %}7{% endif %}" style="text-align: center; color: #777; padding: 2rem;">
+                                No se encontraron expedientes.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if puede_verificar %}
+        <div class="validation-bar">
+            <div>
+                <label for="llave_firma" style="display:inline-block; margin-right:0.5rem; color:#1a5276;">🔑 Llave de Firma para validar:</label>
+                <input type="password" name="llave_firma" id="llave_firma" placeholder="Ingresa tus 64 caracteres...">
+            </div>
+            <button type="submit" class="btn-validate">Firmar y validar seleccionados 🔒</button>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+</body>
+</html>

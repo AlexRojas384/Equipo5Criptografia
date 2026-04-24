@@ -212,7 +212,7 @@
 
     <div class="cards-grid">
 
-        {% if rol == 'Admin' or rol == 'Voluntario' or rol == 'Junior' %}
+        {% if 'puede_crear_expediente' in permisos_rol %}
         <a href="{% url 'expediente:registrar' %}" class="card verde">
             <div class="card-icon">📋</div>
             <div class="card-title">Registrar migrante</div>
@@ -220,23 +220,23 @@
         </a>
         {% endif %}
 
-        {% if rol == 'Admin' or rol == 'Voluntario' %}
-        <a href="#" class="card azul">
+        {% if 'puede_ver_expediente' in permisos_rol and rol != 'Usuario' %}
+        <a href="{% url 'expediente:desbloquear_sesion' %}" class="card azul">
             <div class="card-icon">🗂️</div>
             <div class="card-title">Ver expedientes</div>
             <div class="card-desc">Consultar y editar expedientes existentes.</div>
         </a>
         {% endif %}
 
-        {% if rol == 'Junior' %}
-        <a href="#" class="card azul">
+        {% if rol == 'Usuario' %}
+        <a href="{% url 'expediente:desbloquear_sesion' %}" class="card azul">
             <div class="card-icon">🗂️</div>
             <div class="card-title">Mis expedientes</div>
             <div class="card-desc">Consultar los expedientes que tú has registrado.</div>
         </a>
         {% endif %}
 
-        {% if rol == 'Admin' or rol == 'Voluntario' %}
+        {% if 'puede_exportar_expediente' in permisos_rol %}
         <a href="#" class="card naranja">
             <div class="card-icon">📤</div>
             <div class="card-title">Exportar expedientes</div>
@@ -244,7 +244,7 @@
         </a>
         {% endif %}
 
-        {% if rol == 'Admin' %}
+        {% if 'puede_gestionar_usuarios' in permisos_rol %}
         <a href="{% url 'usuarios:admin_panel' %}" class="card rojo">
             <div class="card-header">
                 <div class="card-icon">👥</div>
@@ -257,7 +257,7 @@
         </a>
         {% endif %}
 
-        {% if rol != 'Admin' %}
+        {% if rol != 'Administrador' %}
         <a href="{% url 'usuarios:solicitar_rol' %}" class="card morado">
             <div class="card-icon">✉️</div>
             <div class="card-title">Solicitar cambio de rol</div>
@@ -265,7 +265,7 @@
         </a>
         {% endif %}
 
-        {% if rol == 'Admin' or rol == 'Auditor' %}
+        {% if 'puede_ver_bitacora' in permisos_rol %}
         <a href="#" class="card naranja">
             <div class="card-icon">🔍</div>
             <div class="card-title">Bitácora de auditoría</div>

@@ -111,7 +111,42 @@ def descifrar_llave_aes(llave_cifrada_b64: str, llave_privada_pem: str) -> bytes
     return cipher.decrypt(llave_cifrada)
 
 
+def cifrar_con_rsa(data_bytes: bytes, llave_publica_pem: str) -> str:
+    """Cifra bytes arbitrarios con RSA-4096 (llave pública). Retorna base64."""
+    pub_key = RSA.import_key(llave_publica_pem)
+    cipher  = PKCS1_OAEP.new(pub_key)
+    cifrado = cipher.encrypt(data_bytes)
+    return base64.b64encode(cifrado).decode('utf-8')
+
+
+def descifrar_con_rsa(data_b64: str, llave_privada_pem: str) -> bytes:
+    """Descifra datos cifrados con RSA-4096 (llave privada). Retorna bytes."""
+    priv_key = RSA.import_key(llave_privada_pem)
+    cipher   = PKCS1_OAEP.new(priv_key)
+    cifrado  = base64.b64decode(data_b64)
+    return cipher.decrypt(cifrado)
+
+
 # ─── AES-256 ─────────────────────────────────────────────────────────────────
+
+def cifrar_datos_sin_rsa(datos: dict) -> dict:
+    """
+    Cifra un diccionario de datos con AES-256-EAX.
+    Retorna dict con: datos_cifrados, nonce, tag, llave_aes (bytes crudos).
+    La llave AES NO se cifra aquí — el llamante la cifra con múltiples llaves públicas.
+    """
+    llave_aes = os.urandom(32)
+    datos_json = json.dumps(datos, ensure_ascii=False).encode('utf-8')
+    cipher     = AES.new(llave_aes, AES.MODE_EAX)
+    datos_cifrados, tag = cipher.encrypt_and_digest(datos_json)
+
+    return {
+        'datos_cifrados': base64.b64encode(datos_cifrados).decode('utf-8'),
+        'nonce':          base64.b64encode(cipher.nonce).decode('utf-8'),
+        'tag':            base64.b64encode(tag).decode('utf-8'),
+        'llave_aes':      llave_aes,
+    }
+
 
 def cifrar_datos(datos: dict, llave_publica_pem: str) -> dict:
     """

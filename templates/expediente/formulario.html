@@ -204,6 +204,7 @@
 
             <hr class="divider">
 
+            {% if rol == 'Administrador' or rol == 'Coordinador_Administracion' or rol == 'Coordinador_Legal' or rol == 'Coordinador_Psicosocial' or rol == 'Coordinador_Humanitario' or rol == 'Coordinador_Comunicacion' %}
             <!-- Campo de llave de firma -->
             <div style="
                 background: #eaf2f8; border: 2px solid #2e86c1; border-radius: 10px;
@@ -222,6 +223,10 @@
 
             <button type="submit" class="btn-submit">Firmar y guardar expediente 🔒</button>
             <p class="lock-notice">🔐 Los datos serán cifrados con AES-256 + RSA-4096 y firmados digitalmente con tu llave.</p>
+            {% else %}
+            <button type="submit" class="btn-submit">Guardar expediente 📝</button>
+            <p class="lock-notice">🔐 Los datos serán cifrados automáticamente. El expediente quedará pendiente de validación.</p>
+            {% endif %}
         </form>
     </div>
 </div>

@@ -5,8 +5,8 @@ from .permissions import (
 )
 
 ROLES = {
-    "Admin": {
-        "descripcion": "Control total del sistema",
+    "Administrador": {
+        "descripcion": "Control total del sistema (Producción o Contingencias)",
         "permisos": [
             "puede_crear_expediente",
             "puede_ver_expediente",
@@ -17,8 +17,8 @@ ROLES = {
             "puede_gestionar_usuarios",
         ]
     },
-    "Voluntario": {
-        "descripcion": "Puede crear, ver y editar expedientes",
+    "Coordinador_Administracion": {
+        "descripcion": "Coordinador de Administración (C, R, U)",
         "permisos": [
             "puede_crear_expediente",
             "puede_ver_expediente",
@@ -26,17 +26,53 @@ ROLES = {
             "puede_exportar_expediente",
         ]
     },
-    "Junior": {
-        "descripcion": "Solo puede crear y ver sus propios expedientes",
+    "Coordinador_Legal": {
+        "descripcion": "Coordinador Legal (C, R, U)",
         "permisos": [
             "puede_crear_expediente",
-            "puede_ver_propio_expediente",
+            "puede_ver_expediente",
+            "puede_editar_expediente",
+            "puede_exportar_expediente",
         ]
     },
-    "Auditor": {
-        "descripcion": "Solo puede ver la bitácora de auditoría",
+    "Coordinador_Psicosocial": {
+        "descripcion": "Coordinador Psicosocial (C, R, U)",
         "permisos": [
-            "puede_ver_bitacora",
+            "puede_crear_expediente",
+            "puede_ver_expediente",
+            "puede_editar_expediente",
+            "puede_exportar_expediente",
+        ]
+    },
+    "Coordinador_Humanitario": {
+        "descripcion": "Coordinador Humanitario (C, R, U)",
+        "permisos": [
+            "puede_crear_expediente",
+            "puede_ver_expediente",
+            "puede_editar_expediente",
+            "puede_exportar_expediente",
+        ]
+    },
+    "Coordinador_Comunicacion": {
+        "descripcion": "Coordinador de Comunicación (C, R, U)",
+        "permisos": [
+            "puede_crear_expediente",
+            "puede_ver_expediente",
+            "puede_editar_expediente",
+            "puede_exportar_expediente",
+        ]
+    },
+    "Operativo": {
+        "descripcion": "Nivel Operativo (C, R)",
+        "permisos": [
+            "puede_crear_expediente",
+            "puede_ver_expediente",
+        ]
+    },
+    "Usuario": {
+        "descripcion": "Nivel Usuario (C) - Solo registro",
+        "permisos": [
+            "puede_crear_expediente",
         ]
     },
 }

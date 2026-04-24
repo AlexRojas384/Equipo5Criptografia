@@ -2,20 +2,52 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from functools import wraps
 
+
+# Roles que tienen acceso a funciones de lectura de expedientes
+# (de Operativo para arriba)
+ROLES_CON_LECTURA = [
+    'Administrador',
+    'Coordinador_Administracion',
+    'Coordinador_Legal',
+    'Coordinador_Psicosocial',
+    'Coordinador_Humanitario',
+    'Coordinador_Comunicacion',
+    'Operativo',
+]
+
+
 def rol_requerido(*roles):
     """
-    Decorador para verificar que el usuario autenticado tiene alguno de los roles permitidos.
-    En caso contrario, muestra un mensaje y redirige al dashboard.
+    Decorador que verifica que el usuario tenga uno de los roles indicados
+    Y que posea la llave criptografica correspondiente en su sesion.
+    
+    Si alguien altera la BD para cambiar su rol, el acceso se denegara
+    porque no tendra la llave descifrada en su sesion.
     """
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 return redirect('usuarios:login')
-            if request.user.rol in roles:
-                return view_func(request, *args, **kwargs)
-            messages.error(request, 'No tienes permisos para acceder a esta sección.')
-            return redirect('expediente:dashboard')
+            
+            usuario_rol = request.user.rol
+            
+            # Verificar que el rol del usuario esta entre los permitidos
+            if usuario_rol not in roles:
+                messages.error(request, 'No tienes permisos para acceder a esta seccion.')
+                return redirect('expediente:dashboard')
+            
+            # Verificar que la sesion tiene la llave de rol descifrada
+            llaves_cache = request.session.get('_llaves_rol_cache', {})
+            if usuario_rol not in llaves_cache:
+                messages.error(
+                    request,
+                    'Tu sesion criptografica no esta desbloqueada o no tienes '
+                    'acceso a la llave de tu rol. Desbloquea tu identidad primero.'
+                )
+                return redirect('expediente:desbloquear_sesion')
+            
+            return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator
 
@@ -35,7 +67,7 @@ def certificado_requerido(view_func):
         expirado = u.fecha_expiracion_certificado < timezone.now() if u.fecha_expiracion_certificado else True
         
         if not tiene_todo or expirado:
-            messages.error(request, 'Identidad criptográfica no válida o expirada. Contacta al administrador para renovar tu certificado.')
+            messages.error(request, 'Identidad criptografica no valida o expirada. Contacta al administrador para renovar tu certificado.')
             return redirect('expediente:dashboard')
             
         return view_func(request, *args, **kwargs)

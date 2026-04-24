@@ -31,13 +31,17 @@ class EncryptedTextField(models.TextField):
 
 class Usuario(AbstractUser):
     ROLES = [
-        ('Admin',      'Administrador'),
-        ('Voluntario', 'Voluntario'),
-        ('Junior',     'Junior'),
-        ('Auditor',    'Auditor'),
+        ('Administrador',              'Administrador'),
+        ('Coordinador_Administracion', 'Coordinador de Administración'),
+        ('Coordinador_Legal',          'Coordinador Legal'),
+        ('Coordinador_Psicosocial',    'Coordinador Psicosocial'),
+        ('Coordinador_Humanitario',    'Coordinador Humanitario'),
+        ('Coordinador_Comunicacion',   'Coordinador de Comunicación'),
+        ('Operativo',                  'Operativo'),
+        ('Usuario',                    'Usuario'),
     ]
 
-    rol           = models.CharField(max_length=20, choices=ROLES, default='Junior')
+    rol           = models.CharField(max_length=50, choices=ROLES, default='Usuario')
     telefono      = EncryptedCharField(max_length=200, blank=True, null=True)
     activo        = models.BooleanField(default=True)
     llave_publica = models.TextField(blank=True, null=True)  # RSA pública
@@ -77,8 +81,8 @@ class SolicitudRol(models.Model):
         on_delete=models.CASCADE,
         related_name='solicitudes_rol',
     )
-    rol_actual = models.CharField(max_length=20)
-    rol_solicitado = models.CharField(max_length=20, choices=Usuario.ROLES)
+    rol_actual = models.CharField(max_length=50)
+    rol_solicitado = models.CharField(max_length=50, choices=Usuario.ROLES)
     mensaje = models.TextField(
         blank=True,
         help_text='Explica por qué necesitas este cambio de rol',
@@ -102,3 +106,31 @@ class SolicitudRol(models.Model):
         verbose_name = 'Solicitud de rol'
         verbose_name_plural = 'Solicitudes de rol'
         ordering = ['-fecha_solicitud']
+
+
+class LlaveRol(models.Model):
+    """Almacena la llave pública RSA de un rol del sistema (Admin, Voluntario)."""
+    rol = models.CharField(max_length=50, unique=True)
+    llave_publica = models.TextField()
+
+    def __str__(self):
+        return f"LlaveRol: {self.rol}"
+
+    class Meta:
+        verbose_name = 'Llave de rol'
+        verbose_name_plural = 'Llaves de rol'
+
+
+class AccesoLlaveRol(models.Model):
+    """Llave privada de rol cifrada con la llave pública RSA de un usuario individual."""
+    llave_rol = models.ForeignKey(LlaveRol, on_delete=models.CASCADE, related_name='accesos')
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='accesos_rol')
+    llave_privada_rol_cifrada = models.TextField()
+
+    def __str__(self):
+        return f"Acceso {self.llave_rol.rol} → {self.usuario.username}"
+
+    class Meta:
+        unique_together = ('llave_rol', 'usuario')
+        verbose_name = 'Acceso a llave de rol'
+        verbose_name_plural = 'Accesos a llave de rol'
