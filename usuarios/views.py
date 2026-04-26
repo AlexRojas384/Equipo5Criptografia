@@ -175,6 +175,43 @@ def cambiar_rol(request, pk):
     usuario.save()
     usuario.asignar_rol()
 
+    # --- NUEVO: Distribuir Llaves de Rol ---
+    if nuevo_rol != 'Usuario':
+        from .models import LlaveRol, AccesoLlaveRol
+        from cripto.crypto import cifrar_datos, descifrar_datos
+        import json
+        
+        # Si es Admin, le damos TODAS las llaves. Si no, solo la de su rol.
+        if nuevo_rol == 'Administrador':
+            llaves_a_asignar = LlaveRol.objects.all()
+        else:
+            llaves_a_asignar = LlaveRol.objects.filter(rol=nuevo_rol)
+
+        for llave_rol_obj in llaves_a_asignar:
+            if not AccesoLlaveRol.objects.filter(llave_rol=llave_rol_obj, usuario=usuario).exists():
+                # El admin que realiza el cambio debe tener la llave en su cache
+                # o debemos sacarla de su propio AccesoLlaveRol
+                llave_privada_admin_cache = request.session.get('_llave_privada_cache')
+                acceso_admin = AccesoLlaveRol.objects.filter(llave_rol=llave_rol_obj, usuario=request.user).first()
+                
+                if acceso_admin and llave_privada_admin_cache:
+                    try:
+                        paquete = json.loads(acceso_admin.llave_privada_rol_cifrada)
+                        datos_descifrados = descifrar_datos(paquete, llave_privada_admin_cache)
+                        llave_privada_rol_descifrada = datos_descifrados['key']
+                        
+                        paquete_nuevo = cifrar_datos({'key': llave_privada_rol_descifrada}, usuario.llave_publica)
+                        AccesoLlaveRol.objects.create(
+                            llave_rol=llave_rol_obj,
+                            usuario=usuario,
+                            llave_privada_rol_cifrada=json.dumps(paquete_nuevo)
+                        )
+                    except Exception:
+                        pass
+                else:
+                    messages.warning(request, f'No se pudo asignar la llave de rol "{llave_rol_obj.rol}" porque tu sesión no está desbloqueada.')
+    # ---------------------------------------
+
     _registrar_evento(
         request, 'cambio_rol',
         f'Cambió rol de {usuario.username}: {rol_anterior} → {nuevo_rol}'
@@ -323,13 +360,17 @@ def responder_solicitud(request, pk):
             from .models import LlaveRol, AccesoLlaveRol
             from cripto.crypto import cifrar_datos, descifrar_datos
             import json
-            try:
-                llave_rol_obj = LlaveRol.objects.get(rol=nuevo_rol)
-                
+            
+            # Si es Admin, le damos TODAS las llaves. Si no, solo la de su rol.
+            if nuevo_rol == 'Administrador':
+                llaves_a_asignar = LlaveRol.objects.all()
+            else:
+                llaves_a_asignar = LlaveRol.objects.filter(rol=nuevo_rol)
+
+            for llave_rol_obj in llaves_a_asignar:
                 # Verificar si ya la tiene
                 if not AccesoLlaveRol.objects.filter(llave_rol=llave_rol_obj, usuario=usuario).exists():
                     # Usar las llaves de rol en cache de la sesion del admin
-                    llaves_cache = request.session.get('_llaves_rol_cache', {})
                     llave_privada_admin = request.session.get('_llave_privada_cache')
                     
                     # El admin debe tener acceso a la llave del rol destino
@@ -352,9 +393,7 @@ def responder_solicitud(request, pk):
                         except Exception:
                             messages.error(request, 'Error al descifrar la llave de rol para asignarla.')
                     else:
-                        messages.warning(request, f'No se pudo asignar la llave de rol "{nuevo_rol}" porque tu sesion no esta desbloqueada.')
-            except LlaveRol.DoesNotExist:
-                pass
+                        messages.warning(request, f'No se pudo asignar la llave de rol "{llave_rol_obj.rol}" porque tu sesion no esta desbloqueada.')
         # --------------------------------------------------------------
 
         solicitud.estado = 'aprobada'
@@ -472,8 +511,14 @@ def crear_usuario(request):
         from .models import LlaveRol, AccesoLlaveRol
         from cripto.crypto import cifrar_datos, descifrar_datos
         import json
-        try:
-            llave_rol_obj = LlaveRol.objects.get(rol=rol)
+        
+        # Si es Admin, le damos TODAS las llaves. Si no, solo la de su rol.
+        if rol == 'Administrador':
+            llaves_a_asignar = LlaveRol.objects.all()
+        else:
+            llaves_a_asignar = LlaveRol.objects.filter(rol=rol)
+
+        for llave_rol_obj in llaves_a_asignar:
             llave_privada_rol_descifrada = None
             
             # Buscamos si el admin actual tiene acceso a la llave de este rol
@@ -496,9 +541,7 @@ def crear_usuario(request):
                     llave_privada_rol_cifrada=json.dumps(paquete_nuevo)
                 )
             else:
-                messages.warning(request, f'No se pudo asignar la llave de rol "{rol}" al nuevo usuario. Desbloquea tu sesion primero.')
-        except LlaveRol.DoesNotExist:
-            pass
+                messages.warning(request, f'No se pudo asignar la llave de rol "{llave_rol_obj.rol}" al nuevo usuario. Desbloquea tu sesion primero.')
     # ------------------------------------------------
 
     _registrar_evento(
@@ -583,9 +626,7 @@ def revocar_certificado(request, pk):
 
     usuario = get_object_or_404(Usuario, pk=pk)
 
-    # Limpiar campos criptográficos
-    usuario.llave_publica = None
-    usuario.llave_privada = None
+    # Limpiar solo campos del certificado (SAT)
     usuario.certificado_digital = None
     usuario.fecha_expiracion_certificado = None
     usuario.save()
@@ -596,6 +637,75 @@ def revocar_certificado(request, pk):
     )
 
     messages.success(request, f'Certificado de {usuario.username} revocado exitosamente.')
+    return redirect('usuarios:admin_panel')
+
+
+@rol_requerido('Administrador')
+def reset_password_admin(request, pk):
+    """Permite al admin resetear el password y las llaves de login de un usuario."""
+    if request.method != 'POST':
+        return redirect('usuarios:admin_panel')
+
+    usuario = get_object_or_404(Usuario, pk=pk)
+    nueva_password = request.POST.get('nueva_password', '').strip()
+
+    if len(nueva_password) < 8:
+        messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
+        return redirect('usuarios:admin_panel')
+
+    # Generar NUEVO par de llaves de login
+    from cripto.crypto import generar_par_llaves, cifrar_llave_con_password
+    import secrets
+
+    salt_login = secrets.token_hex(32)
+    llave_privada_login, llave_publica_login = generar_par_llaves()
+    llave_privada_cifrada = cifrar_llave_con_password(llave_privada_login, nueva_password, salt_login)
+
+    # Actualizar usuario
+    usuario.set_password(nueva_password)
+    usuario.llave_publica = llave_publica_login
+    usuario.llave_privada = llave_privada_cifrada
+    usuario.salt_login = salt_login
+    usuario.save()
+
+    # --- Distribuir Llaves de Rol ---
+    if usuario.rol != 'Usuario':
+        from .models import LlaveRol, AccesoLlaveRol
+        from cripto.crypto import cifrar_datos, descifrar_datos
+        import json
+        
+        # Eliminar accesos viejos ya que no se pueden descifrar con la nueva llave
+        usuario.accesos_rol.all().delete()
+
+        if usuario.rol == 'Administrador':
+            llaves_a_asignar = LlaveRol.objects.all()
+        else:
+            llaves_a_asignar = LlaveRol.objects.filter(rol=usuario.rol)
+
+        for llave_rol_obj in llaves_a_asignar:
+            llave_privada_admin_cache = request.session.get('_llave_privada_cache')
+            acceso_admin = AccesoLlaveRol.objects.filter(llave_rol=llave_rol_obj, usuario=request.user).first()
+            
+            if acceso_admin and llave_privada_admin_cache:
+                try:
+                    paquete = json.loads(acceso_admin.llave_privada_rol_cifrada)
+                    datos_descifrados = descifrar_datos(paquete, llave_privada_admin_cache)
+                    llave_privada_rol_descifrada = datos_descifrados['key']
+                    
+                    paquete_nuevo = cifrar_datos({'key': llave_privada_rol_descifrada}, llave_publica_login)
+                    AccesoLlaveRol.objects.create(
+                        llave_rol=llave_rol_obj,
+                        usuario=usuario,
+                        llave_privada_rol_cifrada=json.dumps(paquete_nuevo)
+                    )
+                except Exception:
+                    pass
+
+    _registrar_evento(
+        request, 'cambio_rol',
+        f'Reseteó contraseña y llaves de login para {usuario.username}'
+    )
+    messages.success(request, f'Contraseña y llaves de {usuario.username} restablecidas correctamente.')
     return redirect('usuarios:admin_panel')
 
 # ─── Cambiar contraseña ──────────────────────────────────────────────────────

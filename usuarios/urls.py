@@ -15,6 +15,7 @@ urlpatterns = [
     path('crear-usuario/',                views.crear_usuario,       name='crear_usuario'),
     path('regenerar-identidad/<int:pk>/', views.regenerar_identidad, name='regenerar_identidad'),
     path('revocar-certificado/<int:pk>/', views.revocar_certificado, name='revocar_certificado'),
+    path('reset-password-admin/<int:pk>/', views.reset_password_admin, name='reset_password_admin'),
     path('descargar-certificado/',        views.descargar_certificado, name='descargar_certificado'),
     path('ingresar-firma/',               views.ingresar_firma,      name='ingresar_firma'),
     path('cambiar-password/',             views.cambiar_password,    name='cambiar_password'),

@@ -618,8 +618,16 @@
                                 
                                 <form method="POST" action="{% url 'usuarios:regenerar_identidad' data.usuario.pk %}" style="margin-top:4px;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline btn-sm" style="width:100%; font-size:0.65rem;" title="Generar nuevas llaves y certificado">
-                                        ⚡ Reset Identidad
+                                    <button type="submit" class="btn btn-outline btn-sm" style="width:100%; font-size:0.65rem;" title="Generar nuevas llaves y certificado de firma">
+                                        ⚡ Reset Firma/Cert
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{% url 'usuarios:reset_password_admin' data.usuario.pk %}" style="margin-top:4px;" onsubmit="return confirm('¿Seguro que deseas resetear la contraseña y llaves de login de este usuario?');">
+                                    {% csrf_token %}
+                                    <input type="text" name="nueva_password" placeholder="Nueva Pass" required style="width:100%; font-size:0.65rem; padding:2px; margin-bottom:2px;">
+                                    <button type="submit" class="btn btn-danger btn-sm" style="width:100%; font-size:0.65rem;" title="Resetear contraseña y llaves de acceso">
+                                        🔑 Reset Login/Pass
                                     </button>
                                 </form>
                             </div>

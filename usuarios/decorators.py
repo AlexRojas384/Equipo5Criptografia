@@ -87,6 +87,12 @@ def firma_requerida(view_func):
 
         # Si no ha firmado o pasaron más de 15 minutos (900 seg)
         if (tiempo_actual - tiempo_firma) > 900:
+            if request.method == 'POST':
+                # Guardar datos POST para reintentar después de la firma
+                # Usamos dict(request.POST.lists()) para capturar listas de IDs (ej. checkboxes)
+                request.session['pending_post_data'] = dict(request.POST.lists())
+                request.session['pending_post_url'] = request.path
+
             path = request.get_full_path()
             url_next = urllib.parse.quote(path)
             messages.info(request, 'Operación crítica protegida. Por favor, sube tu llave de firma (.key).')

@@ -286,10 +286,21 @@ def lista_expedientes(request):
 @firma_requerida
 def verificar_expedientes(request):
     """
-    POST: Recibe IDs de expedientes a verificar + llave_firma.
-    Requiere reingresar la llave como confirmacion explicita.
+    Recibe IDs de expedientes a verificar. 
+    Si viene de un redirect de firma, recupera los datos de la sesión.
     """
-    if request.method != 'POST':
+    ids_verificar = []
+    
+    if request.method == 'POST':
+        ids_verificar = request.POST.getlist('expedientes_verificar')
+    else:
+        # Intentar recuperar de la sesión (tras firmar)
+        pending_data = request.session.pop('pending_post_data', None)
+        pending_url = request.session.pop('pending_post_url', None)
+        if pending_data and pending_url == request.path:
+            ids_verificar = pending_data.get('expedientes_verificar', [])
+
+    if not ids_verificar and request.method != 'POST':
         return redirect('expediente:lista_expedientes')
 
     usuario = request.user
@@ -389,8 +400,20 @@ def editar_expediente(request, pk):
         messages.error(request, 'Error al descifrar el expediente para su edición.')
         return redirect('expediente:lista_expedientes')
 
+    # Determinar si debemos procesar un POST (directo o recuperado de la sesión tras firmar)
+    pending_data = request.session.pop('pending_post_data', None)
+    pending_url = request.session.pop('pending_post_url', None)
+    
+    post_data = None
     if request.method == 'POST':
-        form = EntrevistaForm(request.POST)
+        post_data = request.POST
+    elif pending_data and pending_url == request.path:
+        # Convertir el dict de listas de vuelta a algo que Form entienda (QueryDict style)
+        from django.utils.datastructures import MultiValueDict
+        post_data = MultiValueDict(pending_data)
+
+    if post_data:
+        form = EntrevistaForm(post_data)
         if form.is_valid():
             datos_nuevos = form.cleaned_data
             datos_nuevos['fecha_atencion'] = str(datos_nuevos['fecha_atencion'])
@@ -454,18 +477,19 @@ def eliminar_expediente(request, pk):
     from django.shortcuts import get_object_or_404
     expediente = get_object_or_404(Expediente, pk=pk)
     
-    if request.method == 'POST':
+    # Permitir eliminación si es POST o si venimos de un redirect de firma exitoso
+    is_signed_redirect = request.session.pop('pending_post_url', None) == request.path
+    if request.method == 'POST' or is_signed_redirect:
         # La llave de firma ya fue validada por el decorador
-        expediente.delete()
-        
-        # Bitacora
         from auditoria.models import BitacoraEvento
         BitacoraEvento.objects.create(
             usuario=request.user,
-            tipo='verificacion_expediente',
-            descripcion=f'{request.user.username} eliminó el expediente #{pk}',
+            tipo='eliminar_expediente',
+            descripcion=f'Eliminó expediente #{expediente.pk}',
             ip=request.META.get('REMOTE_ADDR', ''),
         )
-        
+        expediente.delete()
         messages.success(request, f'Expediente #{pk} eliminado correctamente.')
-    return redirect('expediente:lista_expedientes')
+        return redirect('expediente:lista_expedientes')
+        
+    return render(request, 'expediente/confirmar_eliminar.html', {'expediente': expediente})
