@@ -21,16 +21,21 @@ class CertificadoExpiracionMiddleware:
 
             if request.path not in rutas_excluidas:
                 u = request.user
-                tiene_todo = u.llave_privada and u.llave_publica and u.certificado_digital
-                expirado = (u.fecha_expiracion_certificado < timezone.now()) if u.fecha_expiracion_certificado else True
-                
-                if not tiene_todo or expirado:
-                    logout(request)
-                    messages.error(
-                        request, 
-                        'Tu sesión ha sido bloqueada porque tu identidad criptográfica expiró o es inválida. Contacta al Administrador.'
-                    )
-                    return redirect('usuarios:login')
+                # Solo bloquear si el rol requiere firma (Admin y Coordinadores)
+                # Los roles Usuario y Operativo NO requieren certificado digital.
+                rol_actual = getattr(u, 'rol', 'Usuario')
+                if rol_actual not in ['Usuario', 'Operativo']:
+                    tiene_todo = u.llave_privada and u.llave_publica and u.certificado_digital
+                    # Si no tiene fecha, lo consideramos expirado por seguridad (debe tener identidad)
+                    expirado = (u.fecha_expiracion_certificado < timezone.now()) if u.fecha_expiracion_certificado else True
+                    
+                    if not tiene_todo or expirado:
+                        logout(request)
+                        messages.error(
+                            request, 
+                            'Tu sesión ha sido bloqueada porque tu identidad criptográfica expiró o es inválida. Contacta al Administrador.'
+                        )
+                        return redirect('usuarios:login')
                     
         response = self.get_response(request)
         return response

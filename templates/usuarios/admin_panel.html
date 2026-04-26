@@ -896,8 +896,8 @@
             </div>
             <p style="color:#7d6608; font-size:0.82rem; margin:0;">
                 Esta llave <strong>no se almacena</strong> en el sistema y <strong>no podrá recuperarse</strong>.
-                Cópiela y entréguela de forma segura (en persona) al usuario.
-                Sin ella, no podrá firmar expedientes.
+                Cópiela y entréguela de forma segura (en persona) al usuario junto con el archivo ZIP.
+                Sin ellos, no podrá firmar expedientes.
             </p>
         </div>
 
@@ -923,11 +923,16 @@
                 border: none; border-radius: 8px; font-size: 0.9rem;
                 font-weight: 600; cursor: pointer; transition: background 0.2s;
             ">📋 Copiar llave</button>
+            <a href="{% url 'usuarios:descargar_certificado' %}" style="
+                padding: 0.7rem 1.5rem; background: #d68910; color: white; text-decoration: none;
+                border: none; border-radius: 8px; font-size: 0.9rem;
+                font-weight: 600; cursor: pointer; transition: background 0.2s;
+            ">📥 Descargar .ZIP (.cer y .key)</a>
             <button onclick="cerrarModalLlave()" style="
                 padding: 0.7rem 1.5rem; background: #1e8449; color: white;
                 border: none; border-radius: 8px; font-size: 0.9rem;
                 font-weight: 600; cursor: pointer; transition: background 0.2s;
-            ">✅ Entendido, ya la copié</button>
+            ">✅ Entendido, ya cerré</button>
         </div>
     </div>
 </div>

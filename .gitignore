@@ -39,3 +39,6 @@ Thumbs.db
 # Cobertura de pruebas (por si a futuro meten testing automático)
 .coverage
 htmlcov/
+
+# Archivos iniciales (llaves del admin)
+certs_iniciales/

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar Firma Electrónica — Casa Monarca</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .login-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 480px;
+            border-top: 5px solid #1a5276;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            color: #1a5276;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .header p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #1a5276;
+            box-shadow: 0 0 0 3px rgba(26, 82, 118, 0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 0.85rem;
+            background: #1a5276;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 1rem;
+        }
+        .btn:hover { background: #154360; }
+        .btn-cancel {
+            background: transparent;
+            color: #1a5276;
+            border: 1px solid #1a5276;
+            margin-top: 0.5rem;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-cancel:hover { background: #eaf2f8; }
+        
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+        .alert-error { background: #fdecea; color: #c0392b; border-left: 4px solid #c0392b; }
+        .alert-info  { background: #eaf2f8; color: #1a5276; border-left: 4px solid #2e86c1; }
+
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            border: 2px dashed #bbb;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+        .file-upload-wrapper:hover {
+            border-color: #1a5276;
+            background: #f0f4f8;
+        }
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-name {
+            font-size: 0.9rem;
+            color: #555;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <div class="header">
+        <h1>Autenticación SAT</h1>
+        <p>Operación crítica. Por favor, ingresa tu llave de firma para continuar.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-info{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>1. Archivo de Llave (.key)</label>
+            <div class="file-upload-wrapper">
+                <input type="file" name="archivo_key" id="archivo_key" accept=".key" required onchange="document.getElementById('file-label').textContent = this.files[0] ? this.files[0].name : 'Seleccionar archivo .key';">
+                <span class="file-name" id="file-label">Seleccionar archivo .key</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="passphrase">2. Contraseña de la llave</label>
+            <input type="password" name="passphrase" id="passphrase" class="form-control" required placeholder="Ingresa la contraseña o passphrase">
+        </div>
+
+        <button type="submit" class="btn">Validar Firma y Continuar</button>
+        <a href="{% url 'expediente:dashboard' %}" class="btn btn-cancel">Cancelar</a>
+    </form>
+</div>
+
+</body>
+</html>

@@ -58,7 +58,7 @@ def generar_certificado(privada_pem: str, publica_pem: str, username: str, passp
     """
     Genera un certificado X.509 real (self-signed) para un usuario dado.
     Si la llave privada está cifrada con passphrase, se debe proporcionar.
-    Retorna (certificado_pem_str, expiracion_datetime)
+    Retorna (certificado_pem_str, certificado_der_bytes, expiracion_datetime)
     """
     # Parsear las llaves a objetos de cryptography
     pwd = passphrase.encode('utf-8') if passphrase else None
@@ -92,7 +92,65 @@ def generar_certificado(privada_pem: str, publica_pem: str, username: str, passp
     ).sign(private_key, hashes.SHA256())
     
     cert_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
-    return cert_pem, expiracion
+    cert_der = cert.public_bytes(serialization.Encoding.DER)
+    return cert_pem, cert_der, expiracion
+
+
+def exportar_llave_privada_der(privada_pem: str, passphrase: str) -> bytes:
+    """Exporta la llave privada a formato PKCS#8 DER cifrado con passphrase."""
+    key = RSA.import_key(privada_pem)
+    return key.export_key(
+        format='DER',
+        passphrase=passphrase,
+        pkcs=8,
+        protection='scryptAndAES256-CBC'
+    )
+
+
+def importar_llave_privada_der(der_bytes: bytes, passphrase: str) -> str:
+    """Importa una llave privada en formato PKCS#8 DER cifrado y retorna PEM."""
+    try:
+        key = RSA.import_key(der_bytes, passphrase=passphrase)
+        return key.export_key().decode('utf-8')
+    except (ValueError, TypeError) as e:
+        raise ValueError('Llave de firma incorrecta.') from e
+
+
+# ─── DERIVACION DE CLAVES (Login) ────────────────────────────────────────────
+
+def derivar_clave_login(password: str, salt_hex: str) -> bytes:
+    """Deriva una clave AES-256 usando scrypt a partir del password y el salt."""
+    salt_bytes = bytes.fromhex(salt_hex)
+    return hashlib.scrypt(
+        password.encode('utf-8'),
+        salt=salt_bytes,
+        n=16384,
+        r=8,
+        p=1,
+        dklen=32
+    )
+
+def cifrar_llave_con_password(llave_privada_pem: str, password: str, salt_hex: str) -> str:
+    """Cifra la llave privada (texto PEM) usando una clave derivada del password con AES-EAX."""
+    clave_aes = derivar_clave_login(password, salt_hex)
+    cipher = AES.new(clave_aes, AES.MODE_EAX)
+    ciphertext, tag = cipher.encrypt_and_digest(llave_privada_pem.encode('utf-8'))
+    paquete = cipher.nonce + tag + ciphertext
+    return base64.b64encode(paquete).decode('utf-8')
+
+def descifrar_llave_con_password(llave_cifrada_b64: str, password: str, salt_hex: str) -> str:
+    """Descifra la llave privada cifrada usando el password y salt."""
+    clave_aes = derivar_clave_login(password, salt_hex)
+    paquete = base64.b64decode(llave_cifrada_b64)
+    nonce = paquete[:16]
+    tag = paquete[16:32]
+    ciphertext = paquete[32:]
+    cipher = AES.new(clave_aes, AES.MODE_EAX, nonce=nonce)
+    try:
+        plaintext = cipher.decrypt_and_verify(ciphertext, tag)
+        return plaintext.decode('utf-8')
+    except Exception as e:
+        raise ValueError("Contraseña incorrecta o datos corruptos al descifrar llave de login.") from e
 
 
 def cifrar_llave_aes(llave_aes: bytes, llave_publica_pem: str) -> str:
@@ -147,6 +205,28 @@ def cifrar_datos_sin_rsa(datos: dict) -> dict:
         'llave_aes':      llave_aes,
     }
 
+
+def cifrar_datos_con_aes_existente(datos: dict, llave_aes: bytes) -> dict:
+    """Cifra datos usando una llave AES existente. Retorna base64 de datos, nonce, tag."""
+    datos_json = json.dumps(datos, ensure_ascii=False).encode('utf-8')
+    cipher     = AES.new(llave_aes, AES.MODE_EAX)
+    datos_cifrados, tag = cipher.encrypt_and_digest(datos_json)
+
+    return {
+        'datos_cifrados': base64.b64encode(datos_cifrados).decode('utf-8'),
+        'nonce':          base64.b64encode(cipher.nonce).decode('utf-8'),
+        'tag':            base64.b64encode(tag).decode('utf-8')
+    }
+
+def descifrar_datos_con_aes_existente(paquete: dict, llave_aes: bytes) -> dict:
+    """Descifra datos usando una llave AES existente."""
+    datos_cifrados = base64.b64decode(paquete['datos_cifrados'])
+    nonce          = base64.b64decode(paquete['nonce'])
+    tag            = base64.b64decode(paquete['tag'])
+
+    cipher = AES.new(llave_aes, AES.MODE_EAX, nonce=nonce)
+    datos_json = cipher.decrypt_and_verify(datos_cifrados, tag)
+    return json.loads(datos_json.decode('utf-8'))
 
 def cifrar_datos(datos: dict, llave_publica_pem: str) -> dict:
     """

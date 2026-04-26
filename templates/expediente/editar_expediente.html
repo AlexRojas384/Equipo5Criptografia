@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrevista de Ingreso — Casa Monarca</title>
+    <title>Editar Expediente — Casa Monarca</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -176,9 +176,9 @@
     {% endif %}
 
     <div class="form-header">
-        <h2>📋 Entrevista de ingreso al albergue</h2>
+        <h2>✏️ Editar Expediente #{{ expediente.pk }}</h2>
         <p>Casa Monarca — Ayuda Humanitaria al Migrante, A.B.P.<br>
-        Todos los campos marcados son obligatorios. Los datos serán cifrados automáticamente.</p>
+        Los datos editados serán cifrados automáticamente y firmados digitalmente con tu llave de firma en sesión.</p>
     </div>
 
     <div class="form-card">
@@ -204,8 +204,8 @@
 
             <hr class="divider">
 
-            <button type="submit" class="btn-submit">Guardar expediente 📝</button>
-            <p class="lock-notice">🔐 Los datos serán cifrados automáticamente. El expediente quedará pendiente de validación.</p>
+            <button type="submit" class="btn-submit">Guardar Cambios y Firmar 🔒</button>
+            <p class="lock-notice">🔐 Tu identidad ya fue validada. Se usará tu llave de firma en sesión.</p>
         </form>
     </div>
 </div>

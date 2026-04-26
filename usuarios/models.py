@@ -45,8 +45,9 @@ class Usuario(AbstractUser):
     telefono      = EncryptedCharField(max_length=200, blank=True, null=True)
     activo        = models.BooleanField(default=True)
     llave_publica = models.TextField(blank=True, null=True)  # RSA pública
-    llave_privada = EncryptedTextField(blank=True, null=True)  # RSA privada encriptada transparente
-    certificado_digital = models.TextField(blank=True, null=True)  # Certificado X.509
+    llave_privada = EncryptedTextField(blank=True, null=True)  # RSA privada encriptada transparente (Solo login)
+    salt_login    = models.CharField(max_length=64, blank=True, null=True) # Salt para derivar clave de login
+    certificado_digital = models.TextField(blank=True, null=True)  # Certificado X.509 (DER en Base64)
     fecha_expiracion_certificado = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):

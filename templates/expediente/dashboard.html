@@ -221,7 +221,7 @@
         {% endif %}
 
         {% if 'puede_ver_expediente' in permisos_rol and rol != 'Usuario' %}
-        <a href="{% url 'expediente:desbloquear_sesion' %}" class="card azul">
+        <a href="{% url 'expediente:lista_expedientes' %}" class="card azul">
             <div class="card-icon">🗂️</div>
             <div class="card-title">Ver expedientes</div>
             <div class="card-desc">Consultar y editar expedientes existentes.</div>
@@ -229,7 +229,7 @@
         {% endif %}
 
         {% if rol == 'Usuario' %}
-        <a href="{% url 'expediente:desbloquear_sesion' %}" class="card azul">
+        <a href="{% url 'expediente:lista_expedientes' %}" class="card azul">
             <div class="card-icon">🗂️</div>
             <div class="card-title">Mis expedientes</div>
             <div class="card-desc">Consultar los expedientes que tú has registrado.</div>

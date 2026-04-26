@@ -8,7 +8,7 @@ from cripto.crypto import (
     calcular_hash, firmar, desbloquear_llave_privada,
     descifrar_datos,
 )
-from usuarios.decorators import certificado_requerido, ROLES_CON_LECTURA
+from usuarios.decorators import rol_requerido, ROLES_CON_LECTURA, firma_requerida
 from usuarios.models import LlaveRol, AccesoLlaveRol
 import json, base64
 from Crypto.Cipher import AES
@@ -134,36 +134,14 @@ def dashboard(request):
 
 # ─── Registrar migrante ─────────────────────────────────────────────────────
 
-@certificado_requerido
+@login_required(login_url='usuarios:login')
 def registrar_migrante(request):
     rol = request.user.rol
-    # Los roles de Coordinador y Admin requieren firma obligatoria
-    requiere_firma = rol in (
-        'Administrador',
-        'Coordinador_Administracion', 'Coordinador_Legal',
-        'Coordinador_Psicosocial', 'Coordinador_Humanitario',
-        'Coordinador_Comunicacion',
-    )
 
     if request.method == 'POST':
         form = EntrevistaForm(request.POST)
         if form.is_valid():
             usuario = request.user
-
-            llave_privada_descifrada = None
-            firma = None
-
-            if requiere_firma:
-                llave_firma = request.POST.get('llave_firma', '')
-                if not llave_firma:
-                    messages.error(request, 'Debes ingresar tu llave de firma para autorizar el expediente.')
-                    return render(request, 'expediente/formulario.html', {'form': form, 'rol': rol})
-
-                try:
-                    llave_privada_descifrada = desbloquear_llave_privada(usuario.llave_privada, llave_firma)
-                except ValueError:
-                    messages.error(request, 'Llave de firma incorrecta. Verifica e intenta de nuevo.')
-                    return render(request, 'expediente/formulario.html', {'form': form, 'rol': rol})
 
             # Recopilar datos del formulario
             datos = form.cleaned_data
@@ -177,9 +155,10 @@ def registrar_migrante(request):
             # Calcular hash del expediente cifrado
             hash_exp = calcular_hash(paquete['datos_cifrados'])
 
-            # Firma digital (solo para Coordinador+ / Admin)
-            if requiere_firma and llave_privada_descifrada:
-                firma = firmar(hash_exp, llave_privada_descifrada)
+            # No se firma al crear. Queda pendiente de validación si fue creado por Operativo/Usuario,
+            # o incluso por admin, pero el estado verificado puede depender del rol, o simplemente False por defecto.
+            verificado = False
+            firma = None
 
             # Guardar en BD
             expediente = Expediente.objects.create(
@@ -188,7 +167,7 @@ def registrar_migrante(request):
                 datos_cifrados    = paquete['datos_cifrados'],
                 nonce             = paquete['nonce'],
                 tag               = paquete['tag'],
-                verificado        = requiere_firma,
+                verificado        = verificado,
                 firma_digital     = firma,
                 hash_expediente   = hash_exp,
             )
@@ -196,10 +175,7 @@ def registrar_migrante(request):
             # Crear accesos de llave AES para el creador y los roles
             _crear_accesos_expediente(expediente, llave_aes, usuario)
 
-            if requiere_firma:
-                messages.success(request, 'Expediente registrado, cifrado y firmado correctamente.')
-            else:
-                messages.success(request, 'Expediente registrado y cifrado. Pendiente de verificacion.')
+            messages.success(request, 'Expediente registrado y cifrado. Pendiente de verificacion.')
             return redirect('expediente:dashboard')
     else:
         form = EntrevistaForm()
@@ -207,64 +183,9 @@ def registrar_migrante(request):
     return render(request, 'expediente/formulario.html', {'form': form, 'rol': rol})
 
 
-# ─── Desbloquear sesion ─────────────────────────────────────────────────────
-
-@certificado_requerido
-def desbloquear_sesion(request):
-    """
-    Pide la llave_firma una sola vez, desbloquea la llave privada del usuario
-    y TODAS las llaves de rol a las que tenga acceso, almacenandolas en la sesion.
-    """
-    # Si ya esta desbloqueado, redirigir directo
-    if request.session.get('_llave_privada_cache'):
-        return redirect('expediente:lista_expedientes')
-
-    if request.method == 'POST':
-        llave_firma = request.POST.get('llave_firma', '')
-        usuario = request.user
-
-        if not llave_firma:
-            messages.error(request, 'Debes ingresar tu llave de firma.')
-            return render(request, 'expediente/desbloquear_sesion.html', {'rol': usuario.rol})
-
-        try:
-            llave_privada = desbloquear_llave_privada(usuario.llave_privada, llave_firma)
-        except ValueError:
-            messages.error(request, 'Llave de firma incorrecta. Verifica e intenta de nuevo.')
-            return render(request, 'expediente/desbloquear_sesion.html', {'rol': usuario.rol})
-
-        # Guardar la llave privada personal en sesion
-        request.session['_llave_privada_cache'] = llave_privada
-
-        # Desbloquear TODAS las llaves de rol a las que tenga acceso
-        llaves_rol_cache = {}
-        accesos_rol = AccesoLlaveRol.objects.select_related('llave_rol').filter(usuario=usuario)
-        
-        for acceso in accesos_rol:
-            try:
-                paquete = json.loads(acceso.llave_privada_rol_cifrada)
-                datos_descifrados = descifrar_datos(paquete, llave_privada)
-                llave_rol_pem = datos_descifrados['key']
-                llaves_rol_cache[acceso.llave_rol.rol] = llave_rol_pem
-            except Exception:
-                pass  # Silenciar errores individuales
-
-        request.session['_llaves_rol_cache'] = llaves_rol_cache
-        
-        if llaves_rol_cache:
-            roles_desbloqueados = ', '.join(llaves_rol_cache.keys())
-            messages.success(request, f'Sesion desbloqueada. Acceso a roles: {roles_desbloqueados}')
-        else:
-            messages.info(request, 'Sesion desbloqueada (solo acceso personal).')
-
-        return redirect('expediente:lista_expedientes')
-
-    return render(request, 'expediente/desbloquear_sesion.html', {'rol': request.user.rol})
 
 
-# ─── Lista de expedientes ───────────────────────────────────────────────────
-
-@certificado_requerido
+@login_required(login_url='usuarios:login')
 def lista_expedientes(request):
     """
     Muestra todos los expedientes descifrados en una tabla.
@@ -273,7 +194,10 @@ def lista_expedientes(request):
     # Verificar que haya llave en sesion
     llave_privada = request.session.get('_llave_privada_cache')
     if not llave_privada:
-        return redirect('expediente:desbloquear_sesion')
+        messages.error(request, 'Tu sesión no fue desbloqueada correctamente. Vuelve a iniciar sesión.')
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect('usuarios:login')
 
     usuario = request.user
     rol = usuario.rol
@@ -352,12 +276,14 @@ def lista_expedientes(request):
         'filtro_fecha_hasta': filtro_fecha_hasta,
         'creadores': creadores,
         'puede_verificar': 'puede_editar_expediente' in permisos_rol or 'puede_eliminar_expediente' in permisos_rol,
+        'puede_editar': 'puede_editar_expediente' in permisos_rol,
+        'puede_eliminar': 'puede_eliminar_expediente' in permisos_rol,
     })
 
 
 # ─── Verificar expedientes ──────────────────────────────────────────────────
 
-@certificado_requerido
+@firma_requerida
 def verificar_expedientes(request):
     """
     POST: Recibe IDs de expedientes a verificar + llave_firma.
@@ -374,22 +300,16 @@ def verificar_expedientes(request):
         messages.error(request, 'No tienes permisos para verificar expedientes.')
         return redirect('expediente:lista_expedientes')
 
-    llave_firma = request.POST.get('llave_firma', '')
     ids_verificar = request.POST.getlist('expedientes_verificar')
-
-    if not llave_firma:
-        messages.error(request, 'Debes ingresar tu llave de firma para verificar expedientes.')
-        return redirect('expediente:lista_expedientes')
 
     if not ids_verificar:
         messages.warning(request, 'No seleccionaste ningun expediente para verificar.')
         return redirect('expediente:lista_expedientes')
 
-    # Validar la llave de firma
-    try:
-        llave_privada = desbloquear_llave_privada(usuario.llave_privada, llave_firma)
-    except ValueError:
-        messages.error(request, 'Llave de firma incorrecta.')
+    # Obtener llave SAT desde la sesión (validada por el decorador)
+    llave_privada = request.session.get('llave_privada_firma')
+    if not llave_privada:
+        messages.error(request, 'No se encontró tu llave de firma en la sesión. Vuelve a validarla.')
         return redirect('expediente:lista_expedientes')
 
     # Verificar y firmar cada expediente
@@ -419,4 +339,133 @@ def verificar_expedientes(request):
     )
 
     messages.success(request, f'{verificados} expediente(s) verificado(s) y firmado(s) correctamente.')
+    return redirect('expediente:lista_expedientes')
+
+
+# ─── Editar Expediente ──────────────────────────────────────────────────────
+
+@rol_requerido('Administrador', 'Coordinador_Legal', 'Coordinador_Administracion', 'Coordinador_Psicosocial', 'Coordinador_Humanitario', 'Coordinador_Comunicacion')
+@firma_requerida
+def editar_expediente(request, pk):
+    from django.shortcuts import get_object_or_404
+    expediente = get_object_or_404(Expediente, pk=pk)
+    
+    # Obtener llave AES para descifrar los datos y prellenar el form
+    usuario = request.user
+    llave_privada = request.session.get('_llave_privada_cache')
+    llaves_rol = request.session.get('_llaves_rol_cache', {})
+    
+    acceso = AccesoExpediente.objects.filter(expediente=expediente, usuario=usuario).first()
+    llave_aes = None
+    
+    if acceso:
+        try:
+            llave_aes = descifrar_llave_aes(acceso.llave_aes_cifrada, llave_privada)
+        except Exception:
+            pass
+            
+    if not llave_aes and usuario.rol in llaves_rol:
+        acceso_rol = AccesoExpediente.objects.filter(expediente=expediente, tipo_acceso=usuario.rol).first()
+        if acceso_rol:
+            try:
+                llave_rol = llaves_rol[usuario.rol]
+                llave_aes = descifrar_llave_aes(acceso_rol.llave_aes_cifrada, llave_rol)
+            except Exception:
+                pass
+                
+    if not llave_aes:
+        messages.error(request, 'No tienes la llave criptográfica necesaria para editar este expediente.')
+        return redirect('expediente:lista_expedientes')
+        
+    try:
+        paquete = {
+            'datos_cifrados': expediente.datos_cifrados,
+            'nonce': expediente.nonce,
+            'tag': expediente.tag
+        }
+        from cripto.crypto import descifrar_datos_con_aes_existente
+        datos_originales = descifrar_datos_con_aes_existente(paquete, llave_aes)
+    except Exception:
+        messages.error(request, 'Error al descifrar el expediente para su edición.')
+        return redirect('expediente:lista_expedientes')
+
+    if request.method == 'POST':
+        form = EntrevistaForm(request.POST)
+        if form.is_valid():
+            datos_nuevos = form.cleaned_data
+            datos_nuevos['fecha_atencion'] = str(datos_nuevos['fecha_atencion'])
+            datos_nuevos['fecha_nacimiento'] = str(datos_nuevos['fecha_nacimiento'])
+            
+            # Cifrar con la misma llave AES (reutilizar)
+            from cripto.crypto import cifrar_datos_con_aes_existente
+            paquete_nuevo = cifrar_datos_con_aes_existente(datos_nuevos, llave_aes)
+            
+            # Hash
+            hash_exp = calcular_hash(paquete_nuevo['datos_cifrados'])
+            
+            # Firmar
+            llave_privada_sat = request.session.get('llave_privada_firma')
+            firma = firmar(hash_exp, llave_privada_sat)
+            
+            # Actualizar
+            expediente.datos_cifrados = paquete_nuevo['datos_cifrados']
+            expediente.nonce = paquete_nuevo['nonce']
+            expediente.tag = paquete_nuevo['tag']
+            expediente.hash_expediente = hash_exp
+            expediente.firma_digital = firma
+            expediente.verificado = True
+            expediente.save()
+            
+            # Bitacora
+            from auditoria.models import BitacoraEvento
+            BitacoraEvento.objects.create(
+                usuario=usuario,
+                tipo='verificacion_expediente',
+                descripcion=f'{usuario.username} editó el expediente #{expediente.pk}',
+                ip=request.META.get('REMOTE_ADDR', ''),
+            )
+            
+            messages.success(request, f'Expediente #{expediente.pk} actualizado y firmado correctamente.')
+            return redirect('expediente:lista_expedientes')
+    else:
+        # Prellenar form
+        if 'fecha_atencion' in datos_originales:
+            from datetime import datetime
+            try:
+                datos_originales['fecha_atencion'] = datetime.strptime(datos_originales['fecha_atencion'], '%Y-%m-%d').date()
+            except ValueError:
+                pass
+        if 'fecha_nacimiento' in datos_originales:
+            from datetime import datetime
+            try:
+                datos_originales['fecha_nacimiento'] = datetime.strptime(datos_originales['fecha_nacimiento'], '%Y-%m-%d').date()
+            except ValueError:
+                pass
+        form = EntrevistaForm(initial=datos_originales)
+        
+    return render(request, 'expediente/editar_expediente.html', {'form': form, 'expediente': expediente})
+
+
+# ─── Eliminar Expediente ────────────────────────────────────────────────────
+
+@rol_requerido('Administrador')
+@firma_requerida
+def eliminar_expediente(request, pk):
+    from django.shortcuts import get_object_or_404
+    expediente = get_object_or_404(Expediente, pk=pk)
+    
+    if request.method == 'POST':
+        # La llave de firma ya fue validada por el decorador
+        expediente.delete()
+        
+        # Bitacora
+        from auditoria.models import BitacoraEvento
+        BitacoraEvento.objects.create(
+            usuario=request.user,
+            tipo='verificacion_expediente',
+            descripcion=f'{request.user.username} eliminó el expediente #{pk}',
+            ip=request.META.get('REMOTE_ADDR', ''),
+        )
+        
+        messages.success(request, f'Expediente #{pk} eliminado correctamente.')
     return redirect('expediente:lista_expedientes')

@@ -9,8 +9,10 @@ Este comando es idempotente: no recrea usuarios que ya existen.
 """
 from django.core.management.base import BaseCommand
 from usuarios.models import Usuario, LlaveRol, AccesoLlaveRol
-from cripto.crypto import generar_llave_firma, generar_par_llaves, generar_certificado, cifrar_datos
+from cripto.crypto import generar_llave_firma, generar_par_llaves, generar_certificado, cifrar_datos, derivar_clave_login, exportar_llave_privada_der
 import json
+import secrets
+import os
 
 
 ADMINS_BASE = [
@@ -50,11 +52,17 @@ class Command(BaseCommand):
                 ))
                 continue
 
-            # Generar identidad criptografica
+            # 1. Generar par de llaves de Login
+            from cripto.crypto import cifrar_llave_con_password
+            salt_login = secrets.token_hex(32)
+            llave_privada_login, llave_publica_login = generar_par_llaves()
+            llave_privada_cifrada = cifrar_llave_con_password(llave_privada_login, admin_info['password'], salt_login)
+
+            # 2. Generar identidad criptografica de Firma (SAT)
             llave_firma = generar_llave_firma()
-            llave_privada, llave_publica = generar_par_llaves(passphrase=llave_firma)
-            certificado_pem, expiracion = generar_certificado(
-                llave_privada, llave_publica, username, passphrase=llave_firma
+            llave_privada_sat, llave_publica_sat = generar_par_llaves()
+            certificado_pem, certificado_der, expiracion = generar_certificado(
+                llave_privada_sat, llave_publica_sat, username
             )
 
             # Crear usuario
@@ -65,8 +73,9 @@ class Command(BaseCommand):
                 last_name=admin_info['last_name'],
                 rol='Administrador',
                 activo=True,
-                llave_publica=llave_publica,
-                llave_privada=llave_privada,
+                salt_login=salt_login,
+                llave_publica=llave_publica_login,
+                llave_privada=llave_privada_cifrada,
                 certificado_digital=certificado_pem,
                 fecha_expiracion_certificado=expiracion,
             )
@@ -75,14 +84,29 @@ class Command(BaseCommand):
             usuario.save()
             usuario.asignar_rol()
 
+            # 3. Exportar archivos a disco (Necesarios para el primer acceso)
+            llave_privada_der = exportar_llave_privada_der(llave_privada_sat, llave_firma)
+            
+            os.makedirs('certs_iniciales', exist_ok=True)
+            with open(f'certs_iniciales/{username}.key', 'wb') as f:
+                f.write(llave_privada_der)
+            with open(f'certs_iniciales/{username}.cer', 'wb') as f:
+                f.write(certificado_der)
+
             self.stdout.write(self.style.SUCCESS(
                 f'OK: Usuario "{username}" creado con rol Administrador.'
             ))
             self.stdout.write(self.style.SUCCESS(
-                f'   Password: {admin_info["password"]}'
+                f'   Password de login: {admin_info["password"]}'
             ))
             self.stdout.write(self.style.SUCCESS(
-                f'   Llave de firma (64 chars): {llave_firma}'
+                f'   Llave de firma SAT (64 chars): {llave_firma}'
+            ))
+            self.stdout.write(self.style.SUCCESS(
+                f'   ARCHIVOS GENERADOS en certs_iniciales/: {username}.key, {username}.cer'
+            ))
+            self.stdout.write(self.style.SUCCESS(
+                f'   -> Úsalos para autorizar tus acciones en el panel administrativo.'
             ))
             self.stdout.write('')
 

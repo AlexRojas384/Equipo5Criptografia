@@ -4,14 +4,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib import messages
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+import zipfile
+import io
+import base64
 
 from .forms import LoginForm
 from .models import Usuario, SolicitudRol
 from .permissions import TODOS_LOS_PERMISOS
 from .roles import ROLES
 from auditoria.models import BitacoraEvento
-from .decorators import rol_requerido
+from .decorators import rol_requerido, firma_requerida
 
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
@@ -51,6 +54,31 @@ def login_view(request):
         if user is not None:
             if user.activo:
                 login(request, user)
+                
+                # --- DESBLOQUEO AUTOMATICO (Login Key) ---
+                if user.llave_privada and user.salt_login:
+                    from cripto.crypto import descifrar_llave_con_password, descifrar_datos
+                    import json
+                    try:
+                        llave_privada_pem = descifrar_llave_con_password(user.llave_privada, password, user.salt_login)
+                        request.session['_llave_privada_cache'] = llave_privada_pem
+                        
+                        # Cargar y descifrar llaves de rol
+                        llaves_rol_cache = {}
+                        for acceso in user.accesos_rol.select_related('llave_rol').all():
+                            try:
+                                paquete = json.loads(acceso.llave_privada_rol_cifrada)
+                                datos = descifrar_datos(paquete, llave_privada_pem)
+                                llaves_rol_cache[acceso.llave_rol.rol] = datos['key']
+                            except Exception:
+                                pass
+                        
+                        request.session['_llaves_rol_cache'] = llaves_rol_cache
+                    except ValueError:
+                        # Si la llave de login no se pudo descifrar (cambio de password forzado o error)
+                        pass
+                # ------------------------------------------
+
                 # Registrar en bitácora
                 BitacoraEvento.objects.create(
                     usuario=user,
@@ -82,6 +110,7 @@ def logout_view(request):
 # ─── Panel de admin ──────────────────────────────────────────────────────────
 
 @rol_requerido('Administrador')
+@firma_requerida
 def admin_panel(request):
     """Panel principal de gestión de usuarios — solo Admin."""
 
@@ -391,11 +420,36 @@ def crear_usuario(request):
         messages.error(request, f'Rol inválido: {rol}')
         return redirect('usuarios:admin_panel')
 
-    # Generar llave de firma (passphrase) y llaves RSA cifradas
-    from cripto.crypto import generar_llave_firma, generar_par_llaves, generar_certificado
-    llave_firma = generar_llave_firma()
-    llave_privada, llave_publica = generar_par_llaves(passphrase=llave_firma)
-    certificado_pem, expiracion = generar_certificado(llave_privada, llave_publica, username, passphrase=llave_firma)
+    # Generar Llave de Acceso (Login Keypair)
+    from cripto.crypto import generar_par_llaves, generar_certificado, generar_llave_firma, exportar_llave_privada_der, cifrar_llave_con_password
+    import secrets
+    import base64
+
+    # 1. Par RSA para Login y su cifrado
+    salt_login = secrets.token_hex(32)
+    llave_privada_login, llave_publica_login = generar_par_llaves()
+    llave_privada_cifrada = cifrar_llave_con_password(llave_privada_login, password, salt_login)
+
+    # Variables de firma (SAT)
+    certificado_pem = None
+    fecha_expiracion = None
+    llave_firma = None
+
+    if rol not in ['Usuario', 'Operativo']:
+        # 2. Par RSA para Firma (SAT Style)
+        llave_firma = generar_llave_firma()
+        privada_firma, publica_firma = generar_par_llaves()
+        certificado_pem, certificado_der, fecha_expiracion = generar_certificado(
+            privada_firma, publica_firma, username
+        )
+        llave_privada_der_cifrada = exportar_llave_privada_der(privada_firma, llave_firma)
+
+        # Preparar archivos para descarga en la sesión temporalmente
+        request.session['cert_temp_zip'] = {
+            'username': username,
+            'cer_b64': base64.b64encode(certificado_der).decode('utf-8'),
+            'key_b64': base64.b64encode(llave_privada_der_cifrada).decode('utf-8'),
+        }
 
     # Crear usuario
     nuevo_usuario = Usuario.objects.create_user(
@@ -405,10 +459,11 @@ def crear_usuario(request):
         last_name=last_name,
         rol=rol,
         activo=True,
-        llave_publica=llave_publica,
-        llave_privada=llave_privada,
+        llave_publica=llave_publica_login,
+        llave_privada=llave_privada_cifrada,
+        salt_login=salt_login,
         certificado_digital=certificado_pem,
-        fecha_expiracion_certificado=expiracion,
+        fecha_expiracion_certificado=fecha_expiracion,
     )
     nuevo_usuario.asignar_rol()
 
@@ -434,7 +489,7 @@ def crear_usuario(request):
                     pass
             
             if llave_privada_rol_descifrada:
-                paquete_nuevo = cifrar_datos({'key': llave_privada_rol_descifrada}, llave_publica)
+                paquete_nuevo = cifrar_datos({'key': llave_privada_rol_descifrada}, llave_publica_login)
                 AccesoLlaveRol.objects.create(
                     llave_rol=llave_rol_obj,
                     usuario=nuevo_usuario,
@@ -451,9 +506,10 @@ def crear_usuario(request):
         f'Creó nuevo usuario: {username} con rol {rol}'
     )
 
-    # Guardar la llave de firma en la sesión para mostrarla UNA sola vez en el modal
-    request.session['llave_firma_generada'] = llave_firma
-    request.session['llave_firma_usuario'] = username
+    # Guardar la llave de firma en la sesión si aplica
+    if llave_firma:
+        request.session['llave_firma_generada'] = llave_firma
+        request.session['llave_firma_usuario'] = username
 
     messages.success(request, f'Usuario "{username}" creado exitosamente con rol {rol}.')
     return redirect('usuarios:admin_panel')
@@ -461,111 +517,49 @@ def crear_usuario(request):
 
 @rol_requerido('Administrador')
 def regenerar_identidad(request, pk):
-    """Regenera llaves y certificado para un usuario existente — solo Admin."""
+    """Regenera el certificado de firma (SAT) para un usuario existente — solo Admin."""
     if request.method != 'POST':
         return redirect('usuarios:admin_panel')
 
     usuario = get_object_or_404(Usuario, pk=pk)
 
-    from cripto.crypto import generar_llave_firma, generar_par_llaves, generar_certificado
-    llave_firma = generar_llave_firma()
-    llave_privada, llave_publica = generar_par_llaves(passphrase=llave_firma)
-    certificado_pem, expiracion = generar_certificado(llave_privada, llave_publica, usuario.username, passphrase=llave_firma)
+    if usuario.rol in ['Usuario', 'Operativo']:
+        messages.error(request, 'Los roles Usuario y Operativo no usan certificados de firma.')
+        return redirect('usuarios:admin_panel')
 
-    usuario.llave_publica = llave_publica
-    usuario.llave_privada = llave_privada
+    from cripto.crypto import generar_llave_firma, generar_par_llaves, generar_certificado, exportar_llave_privada_der
+    import base64
+    
+    llave_firma = generar_llave_firma()
+    privada_firma, publica_firma = generar_par_llaves()
+    certificado_pem, certificado_der, expiracion = generar_certificado(
+        privada_firma, publica_firma, usuario.username
+    )
+    llave_privada_der_cifrada = exportar_llave_privada_der(privada_firma, llave_firma)
+
     usuario.certificado_digital = certificado_pem
     usuario.fecha_expiracion_certificado = expiracion
     usuario.save()
 
-    # --- NUEVO: Re-asignar Llaves de Rol ---
-    # Eliminar todos los accesos viejos a llaves de rol
-    from .models import LlaveRol, AccesoLlaveRol
-    from cripto.crypto import cifrar_datos, descifrar_datos, cifrar_llave_aes, descifrar_llave_aes
-    import json
-    
-    AccesoLlaveRol.objects.filter(usuario=usuario).delete()
-    
-    # Re-cifrar todos los AccesoExpediente de tipo 'Creador' para este usuario
-    from expediente.models import AccesoExpediente
-    llave_privada_admin = request.session.get('_llave_privada_cache')
-    llaves_rol_cache = request.session.get('_llaves_rol_cache', {})
-    
-    if llave_privada_admin and 'Administrador' in llaves_rol_cache:
-        llave_admin_rol = llaves_rol_cache['Administrador']
-        
-        # Re-cifrar los expedientes del usuario con su nueva llave publica
-        accesos_creador = AccesoExpediente.objects.filter(
-            usuario=usuario, tipo_acceso='Creador'
-        )
-        re_cifrados = 0
-        for acceso in accesos_creador:
-            try:
-                # Descifrar la llave AES usando la llave del rol Admin
-                acceso_admin = AccesoExpediente.objects.filter(
-                    expediente=acceso.expediente,
-                    tipo_acceso='Administrador'
-                ).first()
-                if acceso_admin:
-                    llave_aes = descifrar_llave_aes(acceso_admin.llave_aes_cifrada, llave_admin_rol)
-                    # Re-cifrar con la nueva llave publica del usuario
-                    acceso.llave_aes_cifrada = cifrar_llave_aes(llave_aes, llave_publica)
-                    acceso.save()
-                    re_cifrados += 1
-            except Exception:
-                continue
-        
-        if re_cifrados > 0:
-            messages.info(request, f'Se re-cifraron {re_cifrados} expediente(s) con la nueva identidad.')
-    
-    # Asignar llaves de rol segun el rol del usuario
-    if usuario.rol != 'Usuario':
-        try:
-            llave_rol_obj = LlaveRol.objects.get(rol=usuario.rol)
-            acceso_admin = AccesoLlaveRol.objects.filter(
-                llave_rol=llave_rol_obj, usuario=request.user
-            ).first()
-            
-            if acceso_admin and llave_privada_admin:
-                try:
-                    paquete = json.loads(acceso_admin.llave_privada_rol_cifrada)
-                    datos_descifrados = descifrar_datos(paquete, llave_privada_admin)
-                    llave_privada_rol_descifrada = datos_descifrados['key']
-                    
-                    paquete_nuevo = cifrar_datos({'key': llave_privada_rol_descifrada}, llave_publica)
-                    AccesoLlaveRol.objects.create(
-                        llave_rol=llave_rol_obj,
-                        usuario=usuario,
-                        llave_privada_rol_cifrada=json.dumps(paquete_nuevo)
-                    )
-                except Exception:
-                    messages.error(request, 'Error al re-asignar la llave de rol.')
-            else:
-                messages.warning(request, f'No se pudo re-asignar la llave de rol "{usuario.rol}". Desbloquea tu sesion.')
-        except LlaveRol.DoesNotExist:
-            pass
-    
-    # Si el usuario es Administrador, necesita acceso a TODAS las llaves de rol
-    if usuario.rol == 'Administrador':
-        for llave_rol_obj in LlaveRol.objects.all():
-            if AccesoLlaveRol.objects.filter(llave_rol=llave_rol_obj, usuario=usuario).exists():
-                continue
-            acceso_admin = AccesoLlaveRol.objects.filter(
-                llave_rol=llave_rol_obj, usuario=request.user
-            ).first()
-            if acceso_admin and llave_privada_admin:
-                try:
-                    paquete = json.loads(acceso_admin.llave_privada_rol_cifrada)
-                    datos_descifrados = descifrar_datos(paquete, llave_privada_admin)
-                    llave_privada_rol_descifrada = datos_descifrados['key']
-                    paquete_nuevo = cifrar_datos({'key': llave_privada_rol_descifrada}, llave_publica)
-                    AccesoLlaveRol.objects.create(
-                        llave_rol=llave_rol_obj,
-                        usuario=usuario,
-                        llave_privada_rol_cifrada=json.dumps(paquete_nuevo)
-                    )
-                except Exception:
-                    pass
+    # Preparar archivos para descarga en la sesión temporalmente
+    request.session['cert_temp_zip'] = {
+        'username': usuario.username,
+        'cer_b64': base64.b64encode(certificado_der).decode('utf-8'),
+        'key_b64': base64.b64encode(llave_privada_der_cifrada).decode('utf-8'),
+    }
+
+    _registrar_evento(
+        request, 'cambio_rol',
+        f'Regeneró certificado de firma para {usuario.username}'
+    )
+
+    request.session['llave_firma_generada'] = llave_firma
+    request.session['llave_firma_usuario'] = usuario.username
+
+    messages.success(request, f'Certificado de firma de {usuario.username} regenerado correctamente.')
+    return redirect('usuarios:admin_panel')
+
+    # Nota: Ya no se re-cifran expedientes ni llaves de rol porque la Llave de Acceso (Login Keypair) se mantiene intacta.
     # ------------------------------------------------
 
     _registrar_evento(
@@ -626,6 +620,36 @@ def cambiar_password(request):
             messages.error(request, 'Las contraseñas nuevas no coinciden.')
             return redirect('usuarios:cambiar_password')
 
+        # --- NUEVO: Re-cifrar Llave de Acceso (Login Keypair) ---
+        from cripto.crypto import descifrar_llave_con_password, cifrar_llave_con_password
+        import secrets
+        
+        try:
+            # 1. Descifrar con la contraseña actual
+            llave_privada_pem = descifrar_llave_con_password(
+                request.user.llave_privada, password_actual, request.user.salt_login
+            )
+            
+            # 2. Generar nuevo salt y cifrar con la nueva contraseña
+            nuevo_salt = secrets.token_hex(32)
+            nueva_llave_privada_cifrada = cifrar_llave_con_password(
+                llave_privada_pem, password_nueva, nuevo_salt
+            )
+            
+            # 3. Guardar cambios en el modelo de usuario
+            request.user.llave_privada = nueva_llave_privada_cifrada
+            request.user.salt_login = nuevo_salt
+            
+            # Actualizar la caché de la sesión para que las llaves de rol sigan funcionando
+            request.session['_llave_privada_cache'] = llave_privada_pem
+            
+        except Exception as e:
+            # Si algo falla (ej. la llave no estaba cifrada o el salt era nulo), 
+            # podrías decidir si permitir el cambio o no. 
+            # Por seguridad, si el usuario no tiene llaves, simplemente ignoramos.
+            pass
+        # --------------------------------------------------------
+
         request.user.set_password(password_nueva)
         request.user.save()
 
@@ -643,3 +667,96 @@ def cambiar_password(request):
     return render(request, 'usuarios/cambiar_password.html', {
         'usuario': request.user,
     })
+
+
+@rol_requerido('Administrador')
+def descargar_certificado(request):
+    """
+    Descarga el archivo ZIP temporal generado durante crear_usuario o regenerar_identidad.
+    Se borra de la sesión inmediatamente después de descargar.
+    """
+    cert_data = request.session.get('cert_temp_zip')
+    if not cert_data:
+        messages.error(request, 'El certificado ya fue descargado o la sesión expiró.')
+        return redirect('usuarios:admin_panel')
+
+    username = cert_data['username']
+    cer_bytes = base64.b64decode(cert_data['cer_b64'])
+    key_bytes = base64.b64decode(cert_data['key_b64'])
+
+    # Crear ZIP en memoria
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr(f'{username}.cer', cer_bytes)
+        zip_file.writestr(f'{username}.key', key_bytes)
+    
+    buffer.seek(0)
+    
+    # Borrar de la sesión (solo se descarga una vez)
+    del request.session['cert_temp_zip']
+
+    response = HttpResponse(buffer, content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="FirmaDigital_{username}.zip"'
+    return response
+
+
+@login_required(login_url='usuarios:login')
+def ingresar_firma(request):
+    """
+    Vista para subir el archivo .key y la contraseña de la llave de firma.
+    Si es válido, guarda la llave privada en la sesión por 15 minutos.
+    """
+    next_url = request.GET.get('next', 'expediente:dashboard')
+    
+    if request.user.rol in ['Usuario', 'Operativo']:
+        messages.error(request, 'Tu rol no requiere ni tiene permisos para usar firma digital.')
+        return redirect('expediente:dashboard')
+        
+    if request.method == 'POST':
+        archivo_key = request.FILES.get('archivo_key')
+        passphrase = request.POST.get('passphrase', '')
+        
+        if not archivo_key or not passphrase:
+            messages.error(request, 'Debes subir tu archivo .key y proporcionar la contraseña.')
+            return redirect(f'/usuarios/ingresar-firma/?next={next_url}')
+            
+        try:
+            der_bytes = archivo_key.read()
+            from cripto.crypto import importar_llave_privada_der
+            privada_pem = importar_llave_privada_der(der_bytes, passphrase)
+            
+            # Verificar que la llave corresponda al certificado guardado
+            # (Una forma simple es intentar firmar algo o comparar llave publica)
+            from cryptography.x509 import load_pem_x509_certificate
+            from cryptography.hazmat.primitives.serialization import load_pem_private_key
+            import base64
+            
+            cert_pem = request.user.certificado_digital
+            if not cert_pem:
+                raise ValueError("No tienes certificado registrado.")
+                
+            cert = load_pem_x509_certificate(cert_pem.encode('utf-8'))
+            key = load_pem_private_key(privada_pem.encode('utf-8'), password=None)
+            
+            # Comparar modulus para verificar que la llave privada corresponde al certificado
+            if cert.public_key().public_numbers().n != key.public_key().public_numbers().n:
+                raise ValueError("La llave no corresponde a tu certificado actual.")
+                
+            # Guardar estado en sesión
+            import time
+            request.session['tiempo_firma_reciente'] = time.time()
+            request.session['llave_privada_firma'] = privada_pem
+            
+            messages.success(request, 'Firma validada correctamente. Tienes 15 minutos para realizar operaciones críticas.')
+            
+            from django.utils.http import url_has_allowed_host_and_scheme
+            if url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
+            else:
+                return redirect('expediente:dashboard')
+                
+        except Exception as e:
+            messages.error(request, f'Error al validar la firma: {str(e)}')
+            return redirect(f'/usuarios/ingresar-firma/?next={next_url}')
+            
+    return render(request, 'usuarios/ingresar_firma.html', {'next_url': next_url})

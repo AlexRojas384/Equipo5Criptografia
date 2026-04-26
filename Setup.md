@@ -95,7 +95,12 @@ Crea automaticamente las dos cuentas de administrador (produccion y contingencia
 python manage.py crear_admins_base
 ```
 
-> **IMPORTANTE:** Este comando imprime las **llaves de firma de 64 caracteres** para cada administrador. Copia y guarda estas llaves de forma segura, ya que se muestran **una sola vez**. Son necesarias para desbloquear la sesion criptografica en el sistema.
+> **IMPORTANTE:** Este comando genera las cuentas maestras de acceso. Debido a la arquitectura de "Doble Llave", estos administradores ya podrán iniciar sesión y ver expedientes de inmediato.
+>
+> Sin embargo, para realizar **operaciones críticas** (como editar, borrar o gestionar usuarios), el sistema te pedirá tu firma digital. El comando crea automáticamente una carpeta llamada `certs_iniciales/` en la raíz del proyecto.
+> 1. Copia la **Llave de firma SAT (64 chars)** que aparece en la consola.
+> 2. Usa el archivo `.key` que se encuentra en `certs_iniciales/` cuando el sistema te lo solicite.
+> 3. Una vez dentro, se recomienda regenerar tu identidad para descargar un nuevo paquete ZIP personal y borrar la carpeta `certs_iniciales/`.
 
 ### 9. Levantar el servidor
 
@@ -115,7 +120,7 @@ Credenciales por defecto:
 
 ### Sesion bloqueada o reenvio constante al Login?
 
-Si tu usuario fue creado sin llaves, el sistema te cerrara la sesion automaticamente por seguridad.
+Si tu usuario fue creado sin llaves o hubo un problema, el sistema te cerrara la sesion automaticamente por seguridad.
 
 **Solucion:** Pide a un Administrador que regenere tu identidad criptografica desde el Panel de Admin.
 
@@ -161,10 +166,11 @@ casa_monarca/
 
 ## Notas de Seguridad
 
-- **Cifrado Híbrido:** AES-256 para datos y RSA-4096 para intercambio de llaves.
-- **Certificados:** Cumplimiento con estándar X.509 para identidad de usuarios.
+- **Doble Llave:** Llave de Login (derivada con `scrypt` + AES) para descifrado de roles transparente, y Llave de Firma (SAT) para operaciones críticas.
+- **Certificados SAT:** Los roles Coordinador y Administrador usan un certificado X.509 (`.cer`) y una llave privada PKCS#8 (`.key`) que se entrega de forma segura en un `.ZIP` no persistente en el servidor.
 - **Integridad:** Bitácora protegida por encadenamiento de hashes (SHA-256).
 - **Transparencia:** Cifrado a nivel de campo en base de datos para datos sensibles.
+- **Zero-Trust en Edición:** La edición y validación de expedientes requiere subir el archivo `.key` a la plataforma.
 
 ---
 
