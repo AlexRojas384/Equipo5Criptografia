@@ -146,10 +146,17 @@
             background: #f7f9fb;
         }
         .users-table td {
-            padding: 0.85rem 1rem;
-            font-size: 0.9rem;
+            padding: 0.7rem 0.8rem;
+            font-size: 0.85rem;
             border-bottom: 1px solid #f0f0f0;
             vertical-align: middle;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
         }
 
         /* Badges */
@@ -177,12 +184,13 @@
             gap: 0.5rem;
         }
         .select-sm {
-            padding: 0.35rem 0.5rem;
+            padding: 0.3rem 0.4rem;
             border: 1px solid #ccc;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             background: white;
             cursor: pointer;
+            max-width: 120px;
         }
         .select-sm:focus {
             outline: none;
@@ -215,7 +223,7 @@
         }
         .btn-outline:hover { background: #1a5276; color: white; }
         .btn-sm {
-            padding: 0.25rem 0.5rem;
+            padding: 0.2rem 0.4rem;
             font-size: 0.75rem;
         }
         .btn-toggle {
@@ -469,6 +477,69 @@
             padding: 0.4rem 0.9rem;
             font-size: 0.82rem;
         }
+
+        /* Security Column Styles */
+        .security-cell {
+            position: relative;
+        }
+        .security-badges {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .sec-badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .sec-badge.ok { background: #eafaf1; color: #1e8449; border: 1px solid #abebc6; }
+        .sec-badge.warn { background: #fef9e7; color: #9a7d0a; border: 1px solid #f9e79f; }
+        .sec-badge.error { background: #fdecea; color: #c0392b; border: 1px solid #f5b7b1; }
+
+        .sec-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .sec-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: white;
+            min-width: 220px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+            z-index: 100;
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid #eee;
+            margin-top: 4px;
+        }
+        .sec-dropdown:hover .sec-dropdown-content {
+            display: block;
+        }
+        .sec-action-btn {
+            background: none;
+            border: none;
+            color: #1a5276;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+        .sec-action-btn:hover {
+            background: #f0f4f8;
+        }
+        .sec-menu-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #777;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
     </style>
 </head>
 <body>
@@ -565,19 +636,20 @@
         <div class="section-card">
             <div class="section-title">📋 Usuarios registrados</div>
 
-            <table class="users-table">
-                <thead>
-                    <tr>
-                        <th>Usuario</th>
-                        <th>Nombre completo</th>
-                        <th>Rol</th>
-                        <th>Estado</th>
-                        <th>Criptografía</th>
-                        <th>Cambiar rol</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <div class="table-responsive">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th style="white-space: nowrap;">Usuario</th>
+                            <th>Nombre completo</th>
+                            <th style="width: 90px; white-space: nowrap;">Rol</th>
+                            <th>Estado</th>
+                            <th style="width: 100px;">Criptografía</th>
+                            <th style="width: 170px;">Cambiar rol</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
                 {% for data in usuarios_data %}
                     <tr>
                         <td>
@@ -599,37 +671,50 @@
                             <span class="badge badge-inactivo">Inactivo</span>
                             {% endif %}
                         </td>
-                        <td>
-                            <div style="display:flex; flex-direction:column; gap:4px;">
+                        <td class="security-cell">
+                            <div class="security-badges">
+                                {# Status badges #}
                                 {% if data.usuario.llave_privada and data.usuario.llave_publica %}
-                                    <span class="badge" style="background: #1e8449; color: white; display:block;" title="Cifrado transparente activo">Llaves OK</span>
+                                    <span class="sec-badge ok" title="Llaves RSA OK">🔑 OK</span>
                                 {% else %}
-                                    <span class="badge" style="background: #f1c40f; color: #333; display:block;" title="No hay llaves RSA">Sin llaves</span>
+                                    <span class="sec-badge error" title="Faltan llaves RSA">🔑 NO</span>
                                 {% endif %}
+
                                 {% if data.usuario.certificado_digital %}
                                     {% if data.cert_expirado %}
-                                        <span class="badge" style="background: #c0392b; color: white; display:block;" title="Certificado expirado">🔴 Expiró {{ data.usuario.fecha_expiracion_certificado|date:"d/m/Y" }}</span>
+                                        <span class="sec-badge error" title="Certificado expiró {{ data.usuario.fecha_expiracion_certificado|date:'d/m/Y' }}">📜 EXP</span>
                                     {% else %}
-                                        <span class="badge" style="background: #1e8449; color: white; display:block;" title="Certificado válido">🟢 Vence {{ data.usuario.fecha_expiracion_certificado|date:"d/m/Y" }}</span>
+                                        <span class="sec-badge ok" title="Vence {{ data.usuario.fecha_expiracion_certificado|date:'d/m/Y' }}">📜 OK</span>
                                     {% endif %}
                                 {% else %}
-                                    <span class="badge" style="background: #922b21; color: white; display:block;">Sin Cert</span>
+                                    <span class="sec-badge error" title="Sin certificado">📜 NO</span>
                                 {% endif %}
-                                
-                                <form method="POST" action="{% url 'usuarios:regenerar_identidad' data.usuario.pk %}" style="margin-top:4px;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline btn-sm" style="width:100%; font-size:0.65rem;" title="Generar nuevas llaves y certificado de firma">
-                                        ⚡ Reset Firma/Cert
-                                    </button>
-                                </form>
 
-                                <form method="POST" action="{% url 'usuarios:reset_password_admin' data.usuario.pk %}" style="margin-top:4px;" onsubmit="return confirm('¿Seguro que deseas resetear la contraseña y llaves de login de este usuario?');">
-                                    {% csrf_token %}
-                                    <input type="text" name="nueva_password" placeholder="Nueva Pass" required style="width:100%; font-size:0.65rem; padding:2px; margin-bottom:2px;">
-                                    <button type="submit" class="btn btn-danger btn-sm" style="width:100%; font-size:0.65rem;" title="Resetear contraseña y llaves de acceso">
-                                        🔑 Reset Login/Pass
-                                    </button>
-                                </form>
+                                {# Actions Dropdown #}
+                                <div class="sec-dropdown">
+                                    <button class="sec-action-btn">⚙️</button>
+                                    <div class="sec-dropdown-content">
+                                        <div class="sec-menu-title">Acciones de Seguridad</div>
+                                        
+                                        <form method="POST" action="{% url 'usuarios:regenerar_identidad' data.usuario.pk %}" style="margin-bottom: 0.5rem;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline btn-sm" style="width:100%; justify-content: flex-start;">
+                                                ⚡ Regenerar Firma/Cert
+                                            </button>
+                                        </form>
+
+                                        <form method="POST" action="{% url 'usuarios:reset_password_admin' data.usuario.pk %}" onsubmit="return confirm('¿Seguro que deseas resetear la contraseña y llaves de login de este usuario?');">
+                                            {% csrf_token %}
+                                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                                <input type="text" name="nueva_password" placeholder="Nueva Password" required 
+                                                       style="width:100%; font-size:0.75rem; padding:4px; border:1px solid #ddd; border-radius:4px;">
+                                                <button type="submit" class="btn btn-danger btn-sm" style="width:100%; justify-content: flex-start;">
+                                                    🔑 Reset Login/Pass
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </td>
                         <td>
@@ -737,6 +822,7 @@
             </table>
         </div>
     </div>
+</div>
 
     <!-- ═══ TAB: SOLICITUDES ═══ -->
     <div id="tab-solicitudes" class="tab-content">
