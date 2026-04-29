@@ -21,11 +21,15 @@ class Command(BaseCommand):
 
         llave_firma = generar_llave_firma()
         priv, pub = generar_par_llaves(passphrase=llave_firma)
-        cert, exp = generar_certificado(priv, pub, usuario.username, passphrase=llave_firma)
+        cert_pem, cert_der, exp = generar_certificado(
+            priv, pub, usuario.username, 
+            passphrase=llave_firma,
+            auto_firmado=True
+        )
 
         usuario.llave_privada = priv
         usuario.llave_publica = pub
-        usuario.certificado_digital = cert
+        usuario.certificado_digital = cert_pem
         usuario.fecha_expiracion_certificado = exp
         usuario.save()
 

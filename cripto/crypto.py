@@ -24,11 +24,11 @@ def generar_llave_firma():
 
 def generar_par_llaves(passphrase: str = None):
     """
-    Genera un par de llaves RSA-4096.
+    Genera un par de llaves RSA-2048.
     Si se proporciona passphrase, la llave privada se exporta cifrada con ella (PKCS8 + scrypt + AES-256-CBC).
     Retorna (privada_pem, publica_pem).
     """
-    key = RSA.generate(4096)
+    key = RSA.generate(2048)
     if passphrase:
         privada = key.export_key(
             passphrase=passphrase,
@@ -54,10 +54,12 @@ def desbloquear_llave_privada(privada_pem_cifrada: str, passphrase: str) -> str:
         raise ValueError('Llave de firma incorrecta.') from e
 
 
-def generar_certificado(privada_pem: str, publica_pem: str, username: str, passphrase: str = None):
+def generar_certificado(privada_pem: str, publica_pem: str, username: str, passphrase: str = None, issuer_privada_pem: str = None, issuer_username: str = None, auto_firmado: bool = False):
     """
-    Genera un certificado X.509 real (self-signed) para un usuario dado.
-    Si la llave privada está cifrada con passphrase, se debe proporcionar.
+    Genera un certificado X.509 real.
+    Si se proporciona issuer_privada_pem e issuer_username, el certificado es firmado por el emisor.
+    Si auto_firmado es True, el certificado es auto-firmado (self-signed).
+    De lo contrario, lanza ValueError.
     Retorna (certificado_pem_str, certificado_der_bytes, expiracion_datetime)
     """
     # Parsear las llaves a objetos de cryptography
@@ -65,10 +67,24 @@ def generar_certificado(privada_pem: str, publica_pem: str, username: str, passp
     private_key = serialization.load_pem_private_key(privada_pem.encode('utf-8'), password=pwd)
     public_key = serialization.load_pem_public_key(publica_pem.encode('utf-8'))
     
-    subject = issuer = x509.Name([
+    subject = x509.Name([
         x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"Casa Monarca"),
         x509.NameAttribute(NameOID.COMMON_NAME, username),
     ])
+
+    if issuer_privada_pem and issuer_username:
+        issuer = x509.Name([
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"Casa Monarca"),
+            x509.NameAttribute(NameOID.COMMON_NAME, issuer_username),
+        ])
+        # La llave que firma es la del emisor
+        signing_key = serialization.load_pem_private_key(issuer_privada_pem.encode('utf-8'), password=None)
+    elif auto_firmado:
+        # Auto-firmado intencional
+        issuer = subject
+        signing_key = private_key
+    else:
+        raise ValueError("Se requiere una llave de emisor para firmar este certificado (o forzar auto_firmado=True).")
     
     # Validez de 1 año
     ahora = datetime.datetime.utcnow()
@@ -89,7 +105,7 @@ def generar_certificado(privada_pem: str, publica_pem: str, username: str, passp
     ).add_extension(
         x509.SubjectAlternativeName([x509.DNSName(u"localhost")]),
         critical=False,
-    ).sign(private_key, hashes.SHA256())
+    ).sign(signing_key, hashes.SHA256())
     
     cert_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
     cert_der = cert.public_bytes(serialization.Encoding.DER)
@@ -154,7 +170,7 @@ def descifrar_llave_con_password(llave_cifrada_b64: str, password: str, salt_hex
 
 
 def cifrar_llave_aes(llave_aes: bytes, llave_publica_pem: str) -> str:
-    """Cifra la llave AES con RSA-4096 (llave pública). Retorna base64."""
+    """Cifra la llave AES con RSA-2048 (llave pública). Retorna base64."""
     pub_key = RSA.import_key(llave_publica_pem)
     cipher  = PKCS1_OAEP.new(pub_key)
     llave_cifrada = cipher.encrypt(llave_aes)
@@ -162,7 +178,7 @@ def cifrar_llave_aes(llave_aes: bytes, llave_publica_pem: str) -> str:
 
 
 def descifrar_llave_aes(llave_cifrada_b64: str, llave_privada_pem: str) -> bytes:
-    """Descifra la llave AES con RSA-4096 (llave privada)."""
+    """Descifra la llave AES con RSA-2048 (llave privada)."""
     priv_key     = RSA.import_key(llave_privada_pem)
     cipher       = PKCS1_OAEP.new(priv_key)
     llave_cifrada = base64.b64decode(llave_cifrada_b64)
@@ -170,7 +186,7 @@ def descifrar_llave_aes(llave_cifrada_b64: str, llave_privada_pem: str) -> bytes
 
 
 def cifrar_con_rsa(data_bytes: bytes, llave_publica_pem: str) -> str:
-    """Cifra bytes arbitrarios con RSA-4096 (llave pública). Retorna base64."""
+    """Cifra bytes arbitrarios con RSA-2048 (llave pública). Retorna base64."""
     pub_key = RSA.import_key(llave_publica_pem)
     cipher  = PKCS1_OAEP.new(pub_key)
     cifrado = cipher.encrypt(data_bytes)
@@ -178,7 +194,7 @@ def cifrar_con_rsa(data_bytes: bytes, llave_publica_pem: str) -> str:
 
 
 def descifrar_con_rsa(data_b64: str, llave_privada_pem: str) -> bytes:
-    """Descifra datos cifrados con RSA-4096 (llave privada). Retorna bytes."""
+    """Descifra datos cifrados con RSA-2048 (llave privada). Retorna bytes."""
     priv_key = RSA.import_key(llave_privada_pem)
     cipher   = PKCS1_OAEP.new(priv_key)
     cifrado  = base64.b64decode(data_b64)
@@ -276,7 +292,7 @@ def calcular_hash(datos: str) -> str:
 # ─── FIRMA DIGITAL ───────────────────────────────────────────────────────────
 
 def firmar(datos: str, llave_privada_pem: str) -> str:
-    """Firma un string con RSA-4096 + SHA-256. Retorna base64."""
+    """Firma un string con RSA-2048 + SHA-256. Retorna base64."""
     priv_key = RSA.import_key(llave_privada_pem)
     h        = SHA256.new(datos.encode('utf-8'))
     firma    = pkcs1_15.new(priv_key).sign(h)

@@ -81,7 +81,7 @@ python manage.py migrate
 
 ### 7. Inicializar llaves de rol
 
-Genera un par de llaves RSA-4096 para cada uno de los 8 roles del sistema:
+Genera un par de llaves RSA-2048 para cada uno de los 8 roles del sistema:
 
 ```bash
 python manage.py inicializar_llaves_rol
@@ -140,7 +140,7 @@ casa_monarca/
 ├── usuarios/        # Autenticacion y RBAC con llaves de rol
 ├── expediente/      # Gestion de expedientes cifrados
 ├── auditoria/       # Bitacora con chain hash
-├── cripto/          # Motor AES-256 + RSA-4096 + X.509
+├── cripto/          # Motor AES-256 + RSA-2048 + X.509
 ├── templates/       # HTML templates
 ├── .env.example     # Plantilla de variables
 ├── requirements.txt # Dependencias

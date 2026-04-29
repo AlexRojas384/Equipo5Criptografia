@@ -1,7 +1,7 @@
 """
 Inicializa las llaves RSA de rol para todos los roles del sistema.
 
-Genera un par RSA-4096 para cada rol y cifra la llave privada del rol
+Genera un par RSA-2048 para cada rol y cifra la llave privada del rol
 con la llave pública de cada usuario que pertenezca a ese rol.
 Adicionalmente, le da acceso a TODAS las llaves de rol a los usuarios 'Administrador'.
 
@@ -35,7 +35,7 @@ class Command(BaseCommand):
 
             privada_pem = None
             if created or not llave_rol.llave_publica:
-                # Generar par de llaves RSA-4096 sin passphrase
+                # Generar par de llaves RSA-2048 sin passphrase
                 privada_pem, publica_pem = generar_par_llaves(passphrase=None)
                 llave_rol.llave_publica = publica_pem
                 llave_rol.save()

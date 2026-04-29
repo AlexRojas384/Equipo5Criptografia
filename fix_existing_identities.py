@@ -19,10 +19,14 @@ def fix_users():
         print(f"  -> Generando para {u.username}...", end=" ", flush=True)
         llave_firma = generar_llave_firma()
         priv, pub = generar_par_llaves(passphrase=llave_firma)
-        cert, exp = generar_certificado(priv, pub, u.username, passphrase=llave_firma)
+        cert_pem, cert_der, exp = generar_certificado(
+            priv, pub, u.username, 
+            passphrase=llave_firma,
+            auto_firmado=True
+        )
         u.llave_privada = priv
         u.llave_publica = pub
-        u.certificado_digital = cert
+        u.certificado_digital = cert_pem
         u.fecha_expiracion_certificado = exp
         u.save()
         llaves_generadas.append((u.username, llave_firma))

@@ -213,7 +213,7 @@
     <div class="welcome" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
         <div>
             <h2>Bienvenido, {{ usuario.get_full_name|default:usuario.username }}</h2>
-            <p>¿Qué deseas hacer hoy?</p>
+            <p>Selecciona una acción.</p>
         </div>
         <button id="toggle-status" class="btn-status" onclick="toggleStatusPanel()">
             🛡️ Seguridad y Permisos <span id="status-arrow">▼</span>
@@ -227,9 +227,9 @@
                 <p style="font-size: 0.9rem; margin-bottom: 0.3rem;">
                     <strong>Llaves RSA:</strong>
                     {% if tiene_llaves %}
-                        <span style="color: #1e8449; font-weight: bold;">✔ Válidas y Generadas</span>
+                        <span style="color: #1e8449; font-weight: bold;">Activas</span>
                     {% else %}
-                        <span style="color: #c0392b; font-weight: bold;">❌ Pendientes</span>
+                        <span style="color: #c0392b; font-weight: bold;">No generadas</span>
                     {% endif %}
                 </p>
                 <p style="font-size: 0.9rem;">
@@ -238,10 +238,10 @@
                         {% if cert_expirado %}
                             <span style="color: #c0392b; font-weight: bold;">Expirado</span>
                         {% else %}
-                            <span style="color: #1e8449; font-weight: bold;">✔ Activo</span>
+                            <span style="color: #1e8449; font-weight: bold;">Activo</span>
                         {% endif %}
                     {% else %}
-                        <span style="color: #c0392b; font-weight: bold;">❌ Pendiente</span>
+                        <span style="color: #c0392b; font-weight: bold;">No emitido</span>
                     {% endif %}
                 </p>
             </div>

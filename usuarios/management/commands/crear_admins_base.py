@@ -62,7 +62,8 @@ class Command(BaseCommand):
             llave_firma = generar_llave_firma()
             llave_privada_sat, llave_publica_sat = generar_par_llaves()
             certificado_pem, certificado_der, expiracion = generar_certificado(
-                llave_privada_sat, llave_publica_sat, username
+                llave_privada_sat, llave_publica_sat, username,
+                auto_firmado=True
             )
 
             # Crear usuario

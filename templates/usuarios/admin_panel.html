@@ -552,7 +552,7 @@
 <div class="container">
 
     <div class="page-header">
-        <h2>👥 Gestión de Usuarios y Roles</h2>
+        <h2>Gestión de Usuarios y Roles</h2>
         <p>Administra roles, permisos individuales y solicitudes de tu equipo.</p>
     </div>
 
@@ -567,16 +567,16 @@
     <!-- Tabs -->
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('usuarios', event)">
-            👤 Usuarios
+            Usuarios
         </button>
         <button class="tab-btn" onclick="switchTab('solicitudes', event)">
-            📩 Solicitudes
+            Solicitudes
             {% if solicitudes %}
             <span class="tab-badge">{{ solicitudes|length }}</span>
             {% endif %}
         </button>
         <button class="tab-btn" onclick="switchTab('bitacora', event)">
-            🔍 Bitácora
+            Bitácora
         </button>
     </div>
 
@@ -586,7 +586,7 @@
         <!-- Dar de alta usuario -->
         <div class="create-user-card">
             <div class="section-title" onclick="toggleCreateForm()">
-                ➕ Dar de alta usuario
+                Dar de alta usuario
                 <span id="create-arrow" style="font-size:0.8rem; margin-left:0.3rem;">▶</span>
             </div>
             <div id="create-form" class="create-form">
@@ -624,17 +624,24 @@
                         </div>
                         <div class="form-group" style="display:flex; align-items:flex-end;">
                             <button type="submit" class="btn btn-success btn-create">
-                                ✅ Crear usuario
+                                Crear usuario
                             </button>
                         </div>
                     </div>
-                    <p class="help-text" style="margin-top:0.5rem;">🔐 Se generarán llaves RSA-4096 automáticamente para el nuevo usuario.</p>
+                    <p class="help-text" style="margin-top:0.5rem;">Se generará un par de llaves RSA-2048 y un certificado X.509 para el nuevo usuario.</p>
                 </form>
             </div>
         </div>
 
         <div class="section-card">
-            <div class="section-title">📋 Usuarios registrados</div>
+            <div class="section-title" style="display:flex; align-items:center; justify-content:space-between;">
+                <span>Usuarios registrados</span>
+                <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.82rem; font-weight:400; color:#555; cursor:pointer;">
+                    <input type="checkbox" id="toggle-inactivos" onchange="filtrarInactivos(this)"
+                           style="accent-color:#2471a3; width:15px; height:15px; cursor:pointer;">
+                    Mostrar inactivos
+                </label>
+            </div>
 
             <div class="table-responsive">
                 <table class="users-table">
@@ -650,8 +657,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                {% for data in usuarios_data %}
-                    <tr>
+                {% for data in usuarios_data|dictsort:"usuario.rol" %}
+                    <tr data-activo="{{ data.usuario.activo|yesno:'true,false' }}"
+                        {% if not data.usuario.activo %}style="opacity:0.55;"{% endif %}>
                         <td>
                             <strong>{{ data.usuario.username }}</strong>
                             {% if data.usuario.pk == usuario_actual.pk %}
@@ -699,7 +707,7 @@
                                         <form method="POST" action="{% url 'usuarios:regenerar_identidad' data.usuario.pk %}" style="margin-bottom: 0.5rem;">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-outline btn-sm" style="width:100%; justify-content: flex-start;">
-                                                ⚡ Regenerar Firma/Cert
+                                                Regenerar identidad
                                             </button>
                                         </form>
 
@@ -709,7 +717,7 @@
                                                 <input type="text" name="nueva_password" placeholder="Nueva Password" required 
                                                        style="width:100%; font-size:0.75rem; padding:4px; border:1px solid #ddd; border-radius:4px;">
                                                 <button type="submit" class="btn btn-danger btn-sm" style="width:100%; justify-content: flex-start;">
-                                                    🔑 Reset Login/Pass
+                                                    Restablecer contraseña
                                                 </button>
                                             </div>
                                         </form>
@@ -748,14 +756,14 @@
                                     </form>
                                     {% endif %}
                                     <span class="permisos-toggle" onclick="togglePermisos('{{ data.usuario.pk }}')">
-                                        ⚙️ Permisos <span id="arrow-{{ data.usuario.pk }}">▶</span>
+                                        Permisos <span id="arrow-{{ data.usuario.pk }}">▶</span>
                                     </span>
                                 </div>
                                 {% if data.usuario.pk != usuario_actual.pk and data.usuario.certificado_digital %}
                                 <form method="POST" action="{% url 'usuarios:revocar_certificado' data.usuario.pk %}" onsubmit="return confirm('¿Seguro que deseas revocar el certificado de este usuario?');" style="width:100%;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger btn-sm" style="width:100%; font-size:0.65rem;" title="Quitar certificado y llaves">
-                                        🗑️ Revocar Cert.
+                                        Revocar certificado
                                     </button>
                                 </form>
                                 {% endif %}
@@ -812,7 +820,6 @@
                     <tr>
                         <td colspan="7">
                             <div class="empty-state">
-                                <div class="icon">👤</div>
                                 <p>No hay usuarios registrados.</p>
                             </div>
                         </td>
@@ -827,7 +834,7 @@
     <!-- ═══ TAB: SOLICITUDES ═══ -->
     <div id="tab-solicitudes" class="tab-content">
         <div class="section-card">
-            <div class="section-title">📩 Solicitudes de cambio de rol</div>
+            <div class="section-title">Solicitudes de cambio de rol</div>
 
             {% for sol in solicitudes %}
             <div class="solicitud-card">
@@ -842,21 +849,20 @@
                 </div>
                 {% if sol.mensaje %}
                 <div class="solicitud-body">
-                    💬 "{{ sol.mensaje }}"
+                    "{{ sol.mensaje }}"
                 </div>
                 {% endif %}
                 <form method="POST" action="{% url 'usuarios:responder_solicitud' sol.pk %}">
                     {% csrf_token %}
                     <div class="solicitud-actions">
                         <textarea name="respuesta" placeholder="Respuesta al usuario (opcional)..."></textarea>
-                        <button type="submit" name="accion" value="aprobar" class="btn btn-success">✅ Aprobar</button>
-                        <button type="submit" name="accion" value="rechazar" class="btn btn-danger">❌ Rechazar</button>
+                        <button type="submit" name="accion" value="aprobar" class="btn btn-success">Aprobar</button>
+                        <button type="submit" name="accion" value="rechazar" class="btn btn-danger">Rechazar</button>
                     </div>
                 </form>
             </div>
             {% empty %}
             <div class="empty-state">
-                <div class="icon">📭</div>
                 <p>No hay solicitudes pendientes.</p>
             </div>
             {% endfor %}
@@ -866,7 +872,7 @@
     <!-- ═══ TAB: BITÁCORA ═══ -->
     <div id="tab-bitacora" class="tab-content">
         <div class="section-card">
-            <div class="section-title">🔍 Actividad reciente</div>
+            <div class="section-title">Actividad reciente</div>
 
             {% for ev in eventos %}
             <div class="evento-item">
@@ -889,8 +895,7 @@
             </div>
             {% empty %}
             <div class="empty-state">
-                <div class="icon">📋</div>
-                <p>Sin actividad registrada aún.</p>
+                <p>Sin actividad registrada.</p>
             </div>
             {% endfor %}
         </div>
@@ -924,6 +929,20 @@
         if (arrow) arrow.textContent = form.classList.contains('open') ? '▼' : '▶';
     }
 
+    function filtrarInactivos(checkbox) {
+        const mostrar = checkbox.checked;
+        document.querySelectorAll('tbody tr[data-activo="false"]').forEach(function(row) {
+            row.style.display = mostrar ? '' : 'none';
+        });
+    }
+
+    // Ocultar inactivos al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('tbody tr[data-activo="false"]').forEach(function(row) {
+            row.style.display = 'none';
+        });
+    });
+
     // ─── Modal de llave de firma ─────────────────────────────────
     function cerrarModalLlave() {
         const modal = document.getElementById('modal-llave-firma');
@@ -937,7 +956,7 @@
         navigator.clipboard.writeText(llave).then(() => {
             const btn = document.getElementById('btn-copiar-llave');
             if (!btn) return;
-            btn.textContent = '✅ ¡Copiada!';
+            btn.textContent = 'Copiada';
             btn.style.background = '#1e8449';
             setTimeout(() => {
                 btn.textContent = '📋 Copiar llave';
@@ -971,7 +990,6 @@
         animation: fadeIn 0.3s ease;
     ">
         <div style="text-align:center; margin-bottom: 1.5rem;">
-            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔑</div>
             <h2 style="color: #1a5276; font-size: 1.3rem; margin-bottom: 0.3rem;">
                 Llave de Firma Generada
             </h2>
@@ -984,9 +1002,8 @@
             background: #fef9e7; border: 2px solid #f1c40f; border-radius: 10px;
             padding: 1rem; margin-bottom: 1.25rem;
         ">
-            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-                <span style="font-size:1.1rem;">⚠️</span>
-                <strong style="color:#9a7d0a; font-size:0.88rem;">IMPORTANTE — Solo se muestra una vez</strong>
+            <div style="margin-bottom:0.5rem;">
+                <strong style="color:#9a7d0a; font-size:0.88rem; display:block;">IMPORTANTE — Esta llave solo se muestra una vez</strong>
             </div>
             <p style="color:#7d6608; font-size:0.82rem; margin:0;">
                 Esta llave <strong>no se almacena</strong> en el sistema y <strong>no podrá recuperarse</strong>.
@@ -1026,7 +1043,7 @@
                 padding: 0.7rem 1.5rem; background: #1e8449; color: white;
                 border: none; border-radius: 8px; font-size: 0.9rem;
                 font-weight: 600; cursor: pointer; transition: background 0.2s;
-            ">✅ Entendido, ya cerré</button>
+            ">Cerrar</button>
         </div>
     </div>
 </div>

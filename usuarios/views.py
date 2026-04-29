@@ -478,8 +478,23 @@ def crear_usuario(request):
         # 2. Par RSA para Firma (SAT Style)
         llave_firma = generar_llave_firma()
         privada_firma, publica_firma = generar_par_llaves()
+
+        # Obtener llave de firma del admin de la sesión para ser el emisor
+        admin_privada_firma = request.session.get('llave_privada_firma')
+        admin_username = request.user.username
+
+        if not admin_privada_firma:
+            # Obligar al admin a poner su firma de nuevo
+            import time
+            request.session['tiempo_firma_reciente'] = 0  # Invalidar tiempo para el decorador
+            messages.warning(request, "Tu sesión de firma ha expirado o no es válida. Por favor, ingresa tu firma nuevamente.")
+            return redirect(request.path)
+
         certificado_pem, certificado_der, fecha_expiracion = generar_certificado(
-            privada_firma, publica_firma, username
+            privada_firma, publica_firma, username,
+            issuer_privada_pem=admin_privada_firma,
+            issuer_username=admin_username,
+            auto_firmado=False
         )
         llave_privada_der_cifrada = exportar_llave_privada_der(privada_firma, llave_firma)
 
@@ -575,8 +590,23 @@ def regenerar_identidad(request, pk):
     
     llave_firma = generar_llave_firma()
     privada_firma, publica_firma = generar_par_llaves()
+
+    # Obtener llave de firma del admin de la sesión para ser el emisor
+    admin_privada_firma = request.session.get('llave_privada_firma')
+    admin_username = request.user.username
+
+    if not admin_privada_firma:
+        # Obligar al admin a poner su firma de nuevo
+        import time
+        request.session['tiempo_firma_reciente'] = 0  # Invalidar tiempo para el decorador
+        messages.warning(request, "Tu sesión de firma ha expirado o no es válida. Por favor, ingresa tu firma nuevamente.")
+        return redirect(request.path)
+
     certificado_pem, certificado_der, expiracion = generar_certificado(
-        privada_firma, publica_firma, usuario.username
+        privada_firma, publica_firma, usuario.username,
+        issuer_privada_pem=admin_privada_firma,
+        issuer_username=admin_username,
+        auto_firmado=False
     )
     llave_privada_der_cifrada = exportar_llave_privada_der(privada_firma, llave_firma)
 

@@ -218,7 +218,7 @@
 <div class="container">
 
     <div class="page-header">
-        <h2>📋 Solicitar cambio de rol</h2>
+        <h2>Solicitar cambio de rol</h2>
         <p>Envía una solicitud al administrador para cambiar tu rol en el sistema.</p>
     </div>
 
@@ -232,7 +232,7 @@
 
     <!-- Formulario -->
     <div class="form-card">
-        <h3>✉️ Nueva solicitud</h3>
+        <h3>Nueva solicitud</h3>
         <div class="current-role">
             Tu rol actual:
             <span class="badge badge-{{ usuario.rol|lower }}">{{ usuario.rol }}</span>
@@ -258,13 +258,13 @@
                 <p class="help-text">Explica brevemente tu justificación. El admin revisará tu solicitud.</p>
             </div>
 
-            <button type="submit" class="btn-submit">📩 Enviar solicitud</button>
+            <button type="submit" class="btn-submit">Enviar solicitud</button>
         </form>
     </div>
 
     <!-- Historial -->
     <div class="history-card">
-        <h3>📜 Historial de solicitudes</h3>
+        <h3>Historial de solicitudes</h3>
 
         {% for sol in solicitudes %}
         <div class="hist-item">
@@ -276,11 +276,11 @@
                     <span class="badge badge-{{ sol.estado }}">{{ sol.get_estado_display }}</span>
                 </div>
                 {% if sol.mensaje %}
-                <div class="hist-msg">💬 "{{ sol.mensaje }}"</div>
+                <div class="hist-msg">"{{ sol.mensaje }}"</div>
                 {% endif %}
                 {% if sol.respuesta_admin %}
                 <div class="hist-response">
-                    👤 Admin: "{{ sol.respuesta_admin }}"
+                    Admin: "{{ sol.respuesta_admin }}"
                 </div>
                 {% endif %}
             </div>
@@ -290,8 +290,7 @@
         </div>
         {% empty %}
         <div class="empty-state">
-            <div class="icon">📋</div>
-            <p>No has realizado solicitudes aún.</p>
+            <p>No hay solicitudes registradas.</p>
         </div>
         {% endfor %}
     </div>

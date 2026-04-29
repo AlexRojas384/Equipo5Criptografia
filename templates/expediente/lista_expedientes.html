@@ -64,7 +64,7 @@
 
 <div class="container">
     <div class="header-section">
-        <h2>🗂️ {% if puede_verificar %}Todos los Expedientes{% else %}Mis Expedientes{% endif %}</h2>
+        <h2>{% if puede_verificar %}Todos los Expedientes{% else %}Mis Expedientes{% endif %}</h2>
     </div>
 
     {% if messages %}
@@ -148,16 +148,16 @@
                                 <td>{{ item.datos.pais_origen }}</td>
                             {% else %}
                                 <td colspan="3" style="color: #c0392b; font-style: italic;">
-                                    🔒 Datos encriptados (No tienes acceso a esta llave)
+                                    Datos cifrados (sin acceso)
                                 </td>
                             {% endif %}
 
                             <td>{{ item.expediente.creado_por.username }}</td>
                             <td>
                                 {% if item.expediente.verificado %}
-                                    <span class="badge-verificado">✔ Verificado</span>
+                                    <span class="badge-verificado">Verificado</span>
                                 {% else %}
-                                    <span class="badge-pendiente">⏳ Pendiente</span>
+                                    <span class="badge-pendiente">Pendiente</span>
                                 {% endif %}
                             </td>
                             {% if puede_editar or puede_eliminar %}
@@ -188,9 +188,9 @@
         {% if puede_verificar %}
         <div class="validation-bar">
             <span style="color:#1a5276; font-size:0.9rem; font-style:italic; margin-right:auto;">
-                ⚠️ Nota: Se te pedirá tu llave de firma (.key) si no la has ingresado recientemente.
+                Nota: Se requerirá la llave de firma (.key) si no ha sido cargada en esta sesión.
             </span>
-            <button type="submit" class="btn-validate">Firmar y validar seleccionados 🔒</button>
+            <button type="submit" class="btn-validate">Firmar y verificar seleccionados</button>
         </div>
         {% endif %}
     </form>
