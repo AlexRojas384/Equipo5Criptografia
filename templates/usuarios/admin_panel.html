@@ -616,9 +616,9 @@
                         </div>
                         <div class="form-group">
                             <label for="new_rol">Rol</label>
-                            <select name="rol" id="new_rol">
+                            <select name="rol" id="new_rol" onchange="actualizarAyudaCripto()">
                                 {% for val, label in roles_disponibles %}
-                                <option value="{{ val }}" {% if val == 'Junior' %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ val }}" {% if val == 'Usuario' %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -628,7 +628,9 @@
                             </button>
                         </div>
                     </div>
-                    <p class="help-text" style="margin-top:0.5rem;">Se generará un par de llaves RSA-2048 y un certificado X.509 para el nuevo usuario.</p>
+                    <p class="help-text" style="margin-top:0.5rem;" id="p-ayuda-cripto">
+                        Se generará un par de llaves RSA-2048<span id="span-cert-msg"> y un certificado X.509</span> para el nuevo usuario.
+                    </p>
                 </form>
             </div>
         </div>
@@ -927,7 +929,30 @@
         const arrow = document.getElementById('create-arrow');
         if (form) form.classList.toggle('open');
         if (arrow) arrow.textContent = form.classList.contains('open') ? '▼' : '▶';
+        // Asegurar que la ayuda esté actualizada al abrir
+        if (form && form.classList.contains('open')) {
+            actualizarAyudaCripto();
+        }
     }
+
+    function actualizarAyudaCripto() {
+        const select = document.getElementById('new_rol');
+        const spanCert = document.getElementById('span-cert-msg');
+        if (!select || !spanCert) return;
+
+        const rol = select.value;
+        // Roles que NO llevan certificado: Operativo y Usuario
+        if (rol === 'Operativo' || rol === 'Usuario') {
+            spanCert.style.display = 'none';
+        } else {
+            spanCert.style.display = 'inline';
+        }
+    }
+
+    // Inicializar ayuda al cargar
+    document.addEventListener('DOMContentLoaded', function() {
+        actualizarAyudaCripto();
+    });
 
     function filtrarInactivos(checkbox) {
         const mostrar = checkbox.checked;
