@@ -20,15 +20,15 @@
 
 ## 1. Primitivas Criptográficas
 
-| Algoritmo | Parámetros | Uso en el sistema |
-|-----------|-----------|-------------------|
-| **RSA-2048** | PKCS1-OAEP / PKCS#1 v1.5 | Par de llaves por usuario, par de llaves por rol, certificados X.509 |
-| **AES-256-EAX** | Nonce 16B, Tag 16B | Cifrado de datos de expedientes y llaves privadas en reposo |
-| **Scrypt** | N=16384, r=8, p=1, dklen=32 | Derivación de clave desde la contraseña del usuario (login) |
-| **SHA-256** | Hex 64 chars | Hash de expedientes, encadenamiento de bitácora, firma digital |
-| **X.509** | Self-signed, 1 año | Certificado digital por usuario (estilo SAT) |
-| **PKCS#8** | Cifrado con AES-256-CBC + Scrypt | Exportación de llave privada al archivo `.key` descargable |
-| **AES-EAX (DB)** | Derivada de `SECRET_KEY` via SHA-256 | Cifrado transparente de campos sensibles en base de datos |
+| Algoritmo        | Parámetros                           | Uso en el sistema                                                                                                             |
+| ---------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| **RSA-2048**     | PKCS1-OAEP / PKCS#1 v1.5             | Par de llaves por usuario, par de llaves por rol, certificados X.509                                                          |
+| **AES-256-EAX**  | Nonce 16B, Tag 16B                   | Cifrado de datos de expedientes y llaves privadas en reposo                                                                   |
+| **Scrypt**       | N=16384, r=8, p=1, dklen=32          | Derivación de clave desde la contraseña del usuario (login)                                                                   |
+| **SHA-256**      | Hex 64 chars                         | Hash de expedientes, encadenamiento de bitácora, firma digital                                                                |
+| **X.509**        | 1 año de vigencia                    | Certificado digital jerárquico (estilo SAT). Administrador: auto-firmado. Coordinadores: firmado por el Administrador emisor. |
+| **PKCS#8**       | Cifrado con AES-256-CBC + Scrypt     | Exportación de llave privada de firma al archivo `.key` descargable (protegido por contraseña generada de 64 caracteres)      |
+| **AES-EAX (DB)** | Derivada de `SECRET_KEY` via SHA-256 | Cifrado transparente de campos sensibles en base de datos                                                                     |
 
 ---
 
@@ -38,19 +38,19 @@
 
 Modelo de usuario extendido de Django `AbstractUser`.
 
-| Columna | Tipo | Cifrado | Descripción |
-|---------|------|---------|-------------|
-| `id` | INT | No | Identificador primario |
-| `username` | VARCHAR | No | Nombre de usuario único |
-| `password` | VARCHAR | Django PBKDF2 | Hash de contraseña gestionado por Django Auth |
-| `rol` | VARCHAR | No | Rol RBAC asignado (uno de los 8 roles del sistema) |
-| `telefono` | TEXT | **AES-EAX (SECRET_KEY)** | Teléfono cifrado transparentemente con `EncryptedCharField` |
-| `activo` | BOOL | No | Indica si la cuenta está habilitada |
-| `llave_publica` | LONGTEXT | No | Llave pública RSA-2048 en formato PEM — accesible públicamente |
-| `llave_privada` | LONGTEXT | **AES-EAX (SECRET_KEY)** | Llave privada RSA-2048 PEM protegida con `EncryptedTextField` (cifrado transparente de BD) + internamente re-cifrada con Scrypt(password) + AES-EAX |
-| `salt_login` | VARCHAR(64) | No | Salt hexadecimal de 32 bytes para Scrypt; único por usuario |
-| `certificado_digital` | LONGTEXT | No | Certificado X.509 PEM (self-signed, 1 año de vigencia) |
-| `fecha_expiracion_certificado` | DATETIME | No | Fecha de expiración del certificado; el middleware bloquea el acceso si expiró |
+| Columna                        | Tipo        | Cifrado                  | Descripción                                                                                                                                         |
+| ------------------------------ | ----------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                           | INT         | No                       | Identificador primario                                                                                                                              |
+| `username`                     | VARCHAR     | No                       | Nombre de usuario único                                                                                                                             |
+| `password`                     | VARCHAR     | Django PBKDF2            | Hash de contraseña gestionado por Django Auth                                                                                                       |
+| `rol`                          | VARCHAR     | No                       | Rol RBAC asignado (uno de los 8 roles del sistema)                                                                                                  |
+| `telefono`                     | TEXT        | **AES-EAX (SECRET_KEY)** | Teléfono cifrado transparentemente con `EncryptedCharField`                                                                                         |
+| `activo`                       | BOOL        | No                       | Indica si la cuenta está habilitada                                                                                                                 |
+| `llave_publica`                | LONGTEXT    | No                       | Llave pública RSA-2048 en formato PEM — accesible públicamente                                                                                      |
+| `llave_privada`                | LONGTEXT    | **AES-EAX (SECRET_KEY)** | Llave privada RSA-2048 PEM protegida con `EncryptedTextField` (cifrado transparente de BD) + internamente re-cifrada con Scrypt(password) + AES-EAX |
+| `salt_login`                   | VARCHAR(64) | No                       | Salt hexadecimal de 32 bytes para Scrypt; único por usuario                                                                                         |
+| `certificado_digital`          | LONGTEXT    | No                       | Certificado X.509 PEM (Jerárquico: auto-firmado para Admin, emitido por Admin para Coordinadores. Nulo para roles menores).                         |
+| `fecha_expiracion_certificado` | DATETIME    | No                       | Fecha de expiración del certificado; el middleware bloquea el acceso si expiró                                                                      |
 
 > **Doble cifrado en `llave_privada`:** el campo en la BD siempre está envuelto por `EncryptedTextField` (AES-EAX derivado de `SECRET_KEY`). El valor descifrado de BD es, a su vez, la llave privada RSA-2048 re-cifrada con `Scrypt(password) + AES-EAX`. Sólo el usuario que conoce su contraseña puede descifrar su llave privada.
 
@@ -60,11 +60,11 @@ Modelo de usuario extendido de Django `AbstractUser`.
 
 Una fila por cada rol del sistema. Almacena el par RSA-2048 **del rol**, no del usuario.
 
-| Columna | Tipo | Cifrado | Descripción |
-|---------|------|---------|-------------|
-| `id` | INT | No | Identificador primario |
-| `rol` | VARCHAR(50) | No | Nombre del rol (`Administrador`, `Coordinador_Legal`, etc.) — único |
-| `llave_publica` | LONGTEXT | No | Llave pública RSA-2048 PEM del rol; usada para cifrar las llaves AES de expedientes accesibles por ese rol |
+| Columna         | Tipo        | Cifrado | Descripción                                                                                                |
+| --------------- | ----------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `id`            | INT         | No      | Identificador primario                                                                                     |
+| `rol`           | VARCHAR(50) | No      | Nombre del rol (`Administrador`, `Coordinador_Legal`, etc.) — único                                        |
+| `llave_publica` | LONGTEXT    | No      | Llave pública RSA-2048 PEM del rol; usada para cifrar las llaves AES de expedientes accesibles por ese rol |
 
 ---
 
@@ -72,12 +72,12 @@ Una fila por cada rol del sistema. Almacena el par RSA-2048 **del rol**, no del 
 
 Tabla de unión que entrega la llave **privada** de cada rol a cada usuario autorizado.
 
-| Columna | Tipo | Cifrado | Descripción |
-|---------|------|---------|-------------|
-| `id` | INT | No | Identificador primario |
-| `llave_rol_id` | INT (FK → LlaveRol) | No | Referencia al rol cuya llave privada se está distribuyendo |
-| `usuario_id` | INT (FK → Usuario) | No | Referencia al usuario receptor |
-| `llave_privada_rol_cifrada` | LONGTEXT | **RSA-2048 + AES-256-EAX** | JSON con paquete híbrido: `{nonce, tag, llave_aes_cifrada, datos_cifrados}`. La llave AES se cifra con la llave pública del usuario; los datos (llave privada del rol) con AES-EAX |
+| Columna                     | Tipo                | Cifrado                    | Descripción                                                                                                                                                                        |
+| --------------------------- | ------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                        | INT                 | No                         | Identificador primario                                                                                                                                                             |
+| `llave_rol_id`              | INT (FK → LlaveRol) | No                         | Referencia al rol cuya llave privada se está distribuyendo                                                                                                                         |
+| `usuario_id`                | INT (FK → Usuario)  | No                         | Referencia al usuario receptor                                                                                                                                                     |
+| `llave_privada_rol_cifrada` | LONGTEXT            | **RSA-2048 + AES-256-EAX** | JSON con paquete híbrido: `{nonce, tag, llave_aes_cifrada, datos_cifrados}`. La llave AES se cifra con la llave pública del usuario; los datos (llave privada del rol) con AES-EAX |
 
 > **Principio:** cada usuario sólo puede desempaquetar la llave privada de su rol usando su propia llave privada RSA. Sin ella, la llave privada del rol es ilegible.
 
@@ -87,15 +87,15 @@ Tabla de unión que entrega la llave **privada** de cada rol a cada usuario auto
 
 Solicitudes de cambio de rol enviadas por usuarios y respondidas por administradores.
 
-| Columna | Tipo | Cifrado | Descripción |
-|---------|------|---------|-------------|
-| `id` | INT | No | Identificador primario |
-| `solicitante_id` | INT (FK → Usuario) | No | Usuario que solicita el cambio |
-| `rol_actual` | VARCHAR | No | Rol vigente al momento de la solicitud |
-| `rol_solicitado` | VARCHAR | No | Rol al que se desea cambiar |
-| `estado` | VARCHAR | No | `pendiente`, `aprobada` o `rechazada` |
-| `respondido_por_id` | INT (FK → Usuario) | No | Administrador que respondió (nullable) |
-| `fecha_solicitud` | DATETIME | No | Marca temporal de la solicitud |
+| Columna             | Tipo               | Cifrado | Descripción                            |
+| ------------------- | ------------------ | ------- | -------------------------------------- |
+| `id`                | INT                | No      | Identificador primario                 |
+| `solicitante_id`    | INT (FK → Usuario) | No      | Usuario que solicita el cambio         |
+| `rol_actual`        | VARCHAR            | No      | Rol vigente al momento de la solicitud |
+| `rol_solicitado`    | VARCHAR            | No      | Rol al que se desea cambiar            |
+| `estado`            | VARCHAR            | No      | `pendiente`, `aprobada` o `rechazada`  |
+| `respondido_por_id` | INT (FK → Usuario) | No      | Administrador que respondió (nullable) |
+| `fecha_solicitud`   | DATETIME           | No      | Marca temporal de la solicitud         |
 
 ---
 
@@ -103,18 +103,18 @@ Solicitudes de cambio de rol enviadas por usuarios y respondidas por administrad
 
 Expedientes de personas atendidas. **Ningún dato personal es legible en reposo.**
 
-| Columna | Tipo | Cifrado | Descripción |
-|---------|------|---------|-------------|
-| `id` | INT | No | Identificador primario |
-| `creado_por_id` | INT (FK → Usuario) | No | Usuario que creó el expediente |
-| `fecha_creacion` | DATETIME | No | Timestamp de creación (auto) |
-| `fecha_atencion` | DATE | No | Fecha de atención al caso |
-| `datos_cifrados` | LONGTEXT | **AES-256-EAX** | Ciphertext Base64 con todos los datos personales del expediente |
-| `nonce` | TEXT | No | Nonce AES-EAX en Base64 (16 bytes); único por expediente |
-| `tag` | TEXT | No | Tag de autenticación AES-EAX en Base64; permite detectar manipulación |
-| `verificado` | BOOL | No | Indica si el expediente fue verificado/firmado por un rol autorizado |
-| `firma_digital` | LONGTEXT | No | Firma RSA-2048 + SHA-256 (PKCS#1 v1.5) en Base64 del hash del expediente |
-| `hash_expediente` | VARCHAR(64) | No | SHA-256 del ciphertext; parte de lo firmado digitalmente |
+| Columna           | Tipo               | Cifrado         | Descripción                                                              |
+| ----------------- | ------------------ | --------------- | ------------------------------------------------------------------------ |
+| `id`              | INT                | No              | Identificador primario                                                   |
+| `creado_por_id`   | INT (FK → Usuario) | No              | Usuario que creó el expediente                                           |
+| `fecha_creacion`  | DATETIME           | No              | Timestamp de creación (auto)                                             |
+| `fecha_atencion`  | DATE               | No              | Fecha de atención al caso                                                |
+| `datos_cifrados`  | LONGTEXT           | **AES-256-EAX** | Ciphertext Base64 con todos los datos personales del expediente          |
+| `nonce`           | TEXT               | No              | Nonce AES-EAX en Base64 (16 bytes); único por expediente                 |
+| `tag`             | TEXT               | No              | Tag de autenticación AES-EAX en Base64; permite detectar manipulación    |
+| `verificado`      | BOOL               | No              | Indica si el expediente fue verificado/firmado por un rol autorizado     |
+| `firma_digital`   | LONGTEXT           | No              | Firma RSA-2048 + SHA-256 (PKCS#1 v1.5) en Base64 del hash del expediente |
+| `hash_expediente` | VARCHAR(64)        | No              | SHA-256 del ciphertext; parte de lo firmado digitalmente                 |
 
 ---
 
@@ -122,13 +122,13 @@ Expedientes de personas atendidas. **Ningún dato personal es legible en reposo.
 
 Control de acceso granular: una fila por cada entidad (usuario o rol) que puede descifrar un expediente.
 
-| Columna | Tipo | Cifrado | Descripción |
-|---------|------|---------|-------------|
-| `id` | INT | No | Identificador primario |
-| `expediente_id` | INT (FK → Expediente) | No | Expediente al que da acceso |
-| `tipo_acceso` | VARCHAR | No | `'Creador'` o nombre del rol (ej. `'Coordinador_Legal'`) |
-| `usuario_id` | INT (FK → Usuario) | No | Usuario concreto (nullable para accesos de rol genérico) |
-| `llave_aes_cifrada` | LONGTEXT | **RSA-2048 (PKCS1-OAEP)** | La llave AES-256 del expediente, cifrada con la llave pública del usuario o del rol. Sólo quien tenga la llave privada correspondiente puede recuperar la llave AES |
+| Columna             | Tipo                  | Cifrado                   | Descripción                                                                                                                                                         |
+| ------------------- | --------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | INT                   | No                        | Identificador primario                                                                                                                                              |
+| `expediente_id`     | INT (FK → Expediente) | No                        | Expediente al que da acceso                                                                                                                                         |
+| `tipo_acceso`       | VARCHAR               | No                        | `'Creador'` o nombre del rol (ej. `'Coordinador_Legal'`)                                                                                                            |
+| `usuario_id`        | INT (FK → Usuario)    | No                        | Usuario concreto (nullable para accesos de rol genérico)                                                                                                            |
+| `llave_aes_cifrada` | LONGTEXT              | **RSA-2048 (PKCS1-OAEP)** | La llave AES-256 del expediente, cifrada con la llave pública del usuario o del rol. Sólo quien tenga la llave privada correspondiente puede recuperar la llave AES |
 
 > **Cifrado sobre-enumerado:** si un expediente tiene 3 roles con acceso, existirán 3 filas `AccesoExpediente`, cada una con la misma llave AES-256 cifrada con una llave pública diferente. Los datos cifrados (`datos_cifrados`) son únicos y compartidos.
 
@@ -138,15 +138,15 @@ Control de acceso granular: una fila por cada entidad (usuario o rol) que puede 
 
 Registro de auditoría con integridad garantizada por encadenamiento de hashes.
 
-| Columna | Tipo | Cifrado | Descripción |
-|---------|------|---------|-------------|
-| `id` | INT | No | Identificador primario |
-| `usuario_id` | INT (FK → Usuario) | No | Usuario que generó el evento (nullable si es del sistema) |
-| `tipo` | VARCHAR | No | Tipo de evento (login, creación, edición, firma, etc.) |
-| `descripcion` | TEXT | No | Descripción legible del evento |
-| `fecha` | DATETIME | No | Timestamp del evento |
-| `ip` | VARCHAR | No | Dirección IP del cliente |
-| `hash_registro` | VARCHAR(64) | No | SHA-256 del registro actual encadenado con el anterior |
+| Columna         | Tipo               | Cifrado | Descripción                                               |
+| --------------- | ------------------ | ------- | --------------------------------------------------------- |
+| `id`            | INT                | No      | Identificador primario                                    |
+| `usuario_id`    | INT (FK → Usuario) | No      | Usuario que generó el evento (nullable si es del sistema) |
+| `tipo`          | VARCHAR            | No      | Tipo de evento (login, creación, edición, firma, etc.)    |
+| `descripcion`   | TEXT               | No      | Descripción legible del evento                            |
+| `fecha`         | DATETIME           | No      | Timestamp del evento                                      |
+| `ip`            | VARCHAR            | No      | Dirección IP del cliente                                  |
+| `hash_registro` | VARCHAR(64)        | No      | SHA-256 del registro actual encadenado con el anterior    |
 
 ---
 
@@ -239,11 +239,11 @@ USUARIO                         SERVIDOR                          BASE DE DATOS
 
 **Datos en sesión tras login exitoso:**
 
-| Clave de sesión | Contenido | Cuándo se limpia |
-|-----------------|-----------|-----------------|
-| `_llave_privada_cache` | Llave privada RSA-2048 PEM del usuario | Logout |
-| `_llaves_rol_cache` | Dict `{rol: llave_privada_PEM}` | Logout |
-| `llave_privada_firma` | Llave privada del archivo `.key` (SAT) | Logout o 15 min |
+| Clave de sesión         | Contenido                                   | Cuándo se limpia    |
+| ----------------------- | ------------------------------------------- | ------------------- |
+| `_llave_privada_cache`  | Llave privada RSA-2048 PEM del usuario      | Logout              |
+| `_llaves_rol_cache`     | Dict `{rol: llave_privada_PEM}`             | Logout              |
+| `llave_privada_firma`   | Llave privada del archivo `.key` (SAT)      | Logout o 15 min     |
 | `tiempo_firma_reciente` | Timestamp UNIX de cuando se subió el `.key` | Logout o expiración |
 
 ---
@@ -252,18 +252,18 @@ USUARIO                         SERVIDOR                          BASE DE DATOS
 
 ### 5.1 ¿Quién tiene certificado?
 
-| Rol | Tiene X.509 | Puede firmar expedientes | Puede subir `.key` |
-|-----|:-----------:|:-----------------------:|:------------------:|
-| Administrador | Sí | No (gestión) | No |
-| Coordinador_Administracion | Sí | Sí | Sí |
-| Coordinador_Legal | Sí | Sí | Sí |
-| Coordinador_Psicosocial | Sí | Sí | Sí |
-| Coordinador_Humanitario | Sí | Sí | Sí |
-| Coordinador_Comunicacion | Sí | Sí | Sí |
-| Operativo | Sí | No | No |
-| Usuario | Sí | No | No |
+| Rol                        |      Tiene X.509       |             Puede firmar             | Puede subir `.key` |
+| -------------------------- | :--------------------: | :----------------------------------: | :----------------: |
+| Administrador              |   Sí (Auto-firmado)    | Sí (Gestión y firma de certificados) |         Sí         |
+| Coordinador_Administracion | Sí (Firmado por Admin) |   Sí (Operaciones de expedientes)    |         Sí         |
+| Coordinador_Legal          | Sí (Firmado por Admin) |   Sí (Operaciones de expedientes)    |         Sí         |
+| Coordinador_Psicosocial    | Sí (Firmado por Admin) |   Sí (Operaciones de expedientes)    |         Sí         |
+| Coordinador_Humanitario    | Sí (Firmado por Admin) |   Sí (Operaciones de expedientes)    |         Sí         |
+| Coordinador_Comunicacion   | Sí (Firmado por Admin) |   Sí (Operaciones de expedientes)    |         Sí         |
+| Operativo                  |           No           |     No (Autorización vía Login)      |         No         |
+| Usuario                    |           No           |     No (Autorización vía Login)      |         No         |
 
-> Todos los usuarios tienen un certificado X.509 generado al crear la cuenta. La distinción es quién puede usar el `.key` para operaciones críticas (decorador `@firma_requerida`).
+> **Jerarquía "Doble Llave":** Los roles Operativo y Usuario operan exclusivamente con la llave de acceso básica descifrada automáticamente en el login. Los roles Coordinador y Administrador usan certificados. El Administrador usa su `.key` para firmar digitalmente los certificados de los Coordinadores que crea, estableciendo una cadena de confianza estricta.
 
 ### 5.2 Ciclo de vida del certificado
 
@@ -280,12 +280,17 @@ CREACIÓN DE USUARIO (Admin)
         │       llave_privada_cifrada = AES-EAX(clave, llave_privada_PEM)
         │       → almacena en llave_privada (EncryptedTextField)
         │
-        ├─ [4] Generar certificado X.509:
+        ├─ [4] Generar certificado X.509 (Jerárquico):
         │       cert = X509()
         │       cert.subject = CN=username, O=CasaMonarca
         │       cert.valid_from = hoy
         │       cert.valid_to  = hoy + 365 días
-        │       cert.sign(llave_privada_PEM, SHA256)
+        │       Si creador es Admin (con .key activo):
+        │           cert.issuer = CN=username_admin
+        │           cert.sign(llave_privada_firma_admin, SHA256)
+        │       Si es root/autogenerado:
+        │           cert.issuer = CN=username
+        │           cert.sign(llave_privada_PEM, SHA256)
         │       → almacena en certificado_digital (PEM)
         │       → almacena en fecha_expiracion_certificado
         │
@@ -305,7 +310,7 @@ CREACIÓN DE USUARIO (Admin)
 ### 5.3 Flujo de Ingreso de Firma (operación crítica)
 
 ```
-USUARIO (Coordinador)           SERVIDOR
+USUARIO (Admin/Coordinador)     SERVIDOR
      │                             │
      │── POST /ingresar-firma/ ───►│
      │   body: {archivo .key,      │
@@ -349,7 +354,7 @@ MIDDLEWARE (cada request)
 /regenerar-identidad/ (view)
      │
      ├─ [1] Generar nuevo par RSA-2048
-     ├─ [2] Generar nuevo X.509 (1 año)
+     ├─ [2] Generar nuevo X.509 (1 año, firmado por Admin usando sesión.llave_privada_firma)
      ├─ [3] Re-cifrar llave_privada con Scrypt(password) + AES-EAX
      ├─ [4] Re-distribuir llaves de rol (AccesoLlaveRol) con nueva llave pública
      ├─ [5] Generar nuevo .key exportable
@@ -417,7 +422,9 @@ USUARIO (con acceso al expediente)
 
 ## 7. Flujo de Operación Crítica (Firma)
 
-Requerida para: editar expediente, verificar expediente, operaciones administrativas sensibles.
+Requerida por el decorador `@firma_requerida` para: **Editar Expediente**, **Eliminar Expediente**, **Verificar** y la gestión en el **Panel de Administración**.
+
+> **Recifrado Dinámico (Edición/Eliminación):** El sistema recifra dinámicamente usando las llaves AES del expediente en curso y actualiza el Hash de integridad sin necesidad de llaves externas, para después validar y asentar la firma final usando el `.key` de SAT subido en sesión.
 
 ```
 COORDINADOR (con .key cargado en sesión, válido 15 min)
@@ -464,18 +471,18 @@ Para verificar integridad:
 
 **Eventos registrados:**
 
-| Tipo | Cuándo se registra |
-|------|-------------------|
-| `LOGIN` | Inicio de sesión exitoso |
-| `LOGOUT` | Cierre de sesión |
-| `CREACION` | Creación de expediente |
-| `EDICION` | Modificación de expediente |
-| `ELIMINACION` | Eliminación de expediente |
-| `FIRMA` | Firma digital de expediente |
-| `EXPORTACION` | Exportación de expediente |
-| `CAMBIO_ROL` | Cambio de rol de usuario |
-| `CREACION_USUARIO` | Alta de nuevo usuario |
-| `REVOCACION_CERT` | Revocación de certificado |
+| Tipo               | Cuándo se registra          |
+| ------------------ | --------------------------- |
+| `LOGIN`            | Inicio de sesión exitoso    |
+| `LOGOUT`           | Cierre de sesión            |
+| `CREACION`         | Creación de expediente      |
+| `EDICION`          | Modificación de expediente  |
+| `ELIMINACION`      | Eliminación de expediente   |
+| `FIRMA`            | Firma digital de expediente |
+| `EXPORTACION`      | Exportación de expediente   |
+| `CAMBIO_ROL`       | Cambio de rol de usuario    |
+| `CREACION_USUARIO` | Alta de nuevo usuario       |
+| `REVOCACION_CERT`  | Revocación de certificado   |
 
 ---
 
