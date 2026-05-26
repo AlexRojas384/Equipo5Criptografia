@@ -8,6 +8,8 @@ class CertificadoExpiracionMiddleware:
     """
     Bloquea las cuentas autenticadas cuyo certificado haya expirado o no tengan llaves,
     forzando un logout y notificando al usuario.
+    Las rutas del portal de migrantes (/mi-expediente/) quedan completamente excluidas
+    ya que los migrantes no son usuarios Django autenticados.
     """
     def __init__(self, get_response):
         self.get_response = get_response
@@ -19,6 +21,11 @@ class CertificadoExpiracionMiddleware:
                 reverse('usuarios:logout'),
             ]
 
+            # Excluir todo el portal de migrantes
+            if request.path.startswith('/mi-expediente/'):
+                response = self.get_response(request)
+                return response
+
             if request.path not in rutas_excluidas:
                 u = request.user
                 # Solo bloquear si el rol requiere firma (Admin y Coordinadores)
@@ -28,14 +35,14 @@ class CertificadoExpiracionMiddleware:
                     tiene_todo = u.llave_privada and u.llave_publica and u.certificado_digital
                     # Si no tiene fecha, lo consideramos expirado por seguridad (debe tener identidad)
                     expirado = (u.fecha_expiracion_certificado < timezone.now()) if u.fecha_expiracion_certificado else True
-                    
+
                     if not tiene_todo or expirado:
                         logout(request)
                         messages.error(
-                            request, 
+                            request,
                             'Tu sesión ha sido bloqueada porque tu identidad criptográfica expiró o es inválida. Contacta al Administrador.'
                         )
                         return redirect('usuarios:login')
-                    
+
         response = self.get_response(request)
         return response

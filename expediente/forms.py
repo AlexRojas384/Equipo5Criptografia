@@ -36,7 +36,8 @@ GRUPO_POBLACION_CHOICES = [
 class EntrevistaForm(forms.Form):
     fecha_atencion    = forms.DateField(
         label='1. Fecha de atención',
-        widget=forms.DateInput(attrs={'type': 'date'})
+        widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+        input_formats=['%Y-%m-%d'],
     )
     nombre_pila       = forms.CharField(
         label='2. Nombre de pila (sin apellidos)',
@@ -73,7 +74,8 @@ class EntrevistaForm(forms.Form):
     )
     fecha_nacimiento  = forms.DateField(
         label='10. Fecha de nacimiento',
-        widget=forms.DateInput(attrs={'type': 'date'})
+        widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+        input_formats=['%Y-%m-%d'],
     )
     edad              = forms.ChoiceField(
         label='11. Edad',

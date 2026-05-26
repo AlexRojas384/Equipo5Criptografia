@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'expediente',
     'auditoria',
     'cripto',
+    'portal_migrante',
 ]
 
 MIDDLEWARE = [

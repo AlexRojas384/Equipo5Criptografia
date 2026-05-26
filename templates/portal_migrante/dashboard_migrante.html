@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Datos — Casa Monarca</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #1a5276;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .navbar-user span {
+            color: #aed6f1;
+            font-size: 0.875rem;
+        }
+        
+        .badge {
+            background: #2e86c1;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .btn-outline {
+            color: #aed6f1;
+            text-decoration: none;
+            font-size: 0.875rem;
+            border: 1px solid #aed6f1;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: #1a5276;
+        }
+
+        /* Contenido */
+        .container {
+            max-width: 900px;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .welcome {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .welcome h2 {
+            color: #1a5276;
+            font-size: 1.5rem;
+        }
+
+        .welcome p {
+            color: #666;
+            margin-top: 0.3rem;
+            font-size: 0.95rem;
+        }
+        
+        .actions-bar {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn-primary {
+            background: #1a5276;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+        
+        .btn-primary:hover { background: #154360; }
+        
+        .btn-secondary {
+            background: white;
+            color: #1a5276;
+            border: 1px solid #d5dbdb;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: #f8f9fa;
+            border-color: #1a5276;
+        }
+
+        /* Secciones de datos */
+        .data-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #1a5276;
+        }
+        
+        .data-section h3 {
+            color: #1a5276;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .data-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .data-label {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+            text-transform: uppercase;
+        }
+        
+        .data-value {
+            font-size: 1rem;
+            color: #333;
+        }
+        
+        .empty-value {
+            color: #bbb;
+            font-style: italic;
+        }
+        
+        /* Notificaciones */
+        .notification-card {
+            background: #eaf2f8;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #2980b9;
+        }
+        
+        .notification-content p {
+            color: #1a5276;
+            font-size: 0.95rem;
+        }
+        
+        .notification-content span {
+            color: #666;
+            font-size: 0.85rem;
+            display: block;
+            margin-top: 0.2rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="navbar-brand">Casa Monarca</div>
+    <div class="navbar-user">
+        <span>Expediente #{{ exp_id }}</span>
+        <span class="badge">Migrante</span>
+        <a href="{% url 'portal_migrante:salir' %}" class="btn-outline">Cerrar sesion</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="welcome">
+        <div>
+            <h2>Bienvenido, {{ datos.nombre_pila }}</h2>
+            <p>Aqui puedes consultar la informacion personal que tenemos registrada.</p>
+        </div>
+        <div class="actions-bar">
+            <a href="{% url 'portal_migrante:privacidad' %}" class="btn-secondary">Aviso de Privacidad</a>
+            <a href="{% url 'portal_migrante:solicitar_arco' %}" class="btn-primary">Ejercer Derechos ARCO</a>
+        </div>
+    </div>
+    
+    {% if solicitudes %}
+    <div class="notification-card">
+        <div class="notification-content">
+            <p><strong>Tienes solicitudes en tramite</strong></p>
+            <span>Has enviado {{ solicitudes.count }} solicitud(es) de derechos ARCO.</span>
+        </div>
+        <a href="{% url 'portal_migrante:mis_solicitudes' %}" class="btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">Ver estado</a>
+    </div>
+    {% endif %}
+
+    <div class="data-section">
+        <h3>Datos Personales</h3>
+        <div class="data-grid">
+            <div class="data-item">
+                <span class="data-label">Nombre(s)</span>
+                <span class="data-value">{{ datos.nombre_pila|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Primer Apellido</span>
+                <span class="data-value">{{ datos.primer_apellido|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Segundo Apellido</span>
+                <span class="data-value">{{ datos.segundo_apellido|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Fecha de Nacimiento</span>
+                <span class="data-value">{{ datos.fecha_nacimiento|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Edad</span>
+                <span class="data-value">{{ datos.edad|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Genero</span>
+                <span class="data-value">{{ datos.genero|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Nacionalidad</span>
+                <span class="data-value">{{ datos.pais_origen|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Estado Civil</span>
+                <span class="data-value">{{ datos.estado_civil|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="data-section">
+        <h3>Contacto y Ubicacion</h3>
+        <div class="data-grid">
+            <div class="data-item">
+                <span class="data-label">Telefono</span>
+                <span class="data-value">{{ datos.telefono|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Departamento / Estado</span>
+                <span class="data-value">{{ datos.departamento|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Grupo de Poblacion</span>
+                <span class="data-value">{{ datos.grupo_poblacion|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

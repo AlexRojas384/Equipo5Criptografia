@@ -18,6 +18,11 @@ La pregunta de Raul hizo preguntas respecto a las contraseñas y expedientes, es
 
 ## Acerca del Proyecto
 
-Este proyecto es una plataforma de gestión segura de expedientes para Casa Monarca. Recientemente ha sido actualizada para utilizar una **Arquitectura de Seguridad de Doble Llave**.
-- **Acceso Básico:** Descifrado de expedientes transparente al hacer login (Llave de Login).
-- **Operaciones Críticas:** Validación estricta con Certificados y Llaves Privadas (Estilo SAT) exigidas solo para la edición, verificación o borrado de expedientes por parte de la Coordinación y la Administración.
+Este proyecto es una plataforma de gestión segura de expedientes para Casa Monarca. Utiliza una **Arquitectura de Seguridad de Doble Llave** y un portal público para el ejercicio de derechos del migrante.
+
+- **Acceso Básico (colaboradores):** descifrado de expedientes transparente al hacer login con la Llave de Login (Scrypt + AES + RSA por rol).
+- **Operaciones Críticas:** validación estricta con Certificados X.509 y Llaves Privadas (estilo SAT, `.key` con passphrase) exigidas para edición, verificación, borrado y firma de expedientes.
+- **Portal del Migrante (`/mi-expediente/`):** acceso anónimo del migrante usando su folio + nombre completo (Scrypt simétrico). Solo lectura; permite ejercer derechos ARCO (Rectificación, Cancelación, Oposición).
+- **Flujo ARCO multinivel:** Operativo propone cambios → Coordinador firma criptográficamente → en Cancelación, un Administrador adicional debe firmar la ejecución final del borrado del expediente. Toda decisión queda firmada y auditada en bitácora encadenada con SHA-256.
+
+Documentación técnica completa en [FLUJO_CRIPTOGRAFICO.md](FLUJO_CRIPTOGRAFICO.md).

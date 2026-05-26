@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Solicitudes — Casa Monarca</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #1a5276;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .btn-outline {
+            color: #aed6f1;
+            text-decoration: none;
+            font-size: 0.875rem;
+            border: 1px solid #aed6f1;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: #1a5276;
+        }
+
+        /* Contenido */
+        .container {
+            max-width: 900px;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            color: #1a5276;
+            font-size: 1.5rem;
+        }
+
+        .btn-primary {
+            background: #1a5276;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+        
+        .btn-primary:hover { background: #154360; }
+
+        .messages { margin-bottom: 1rem; }
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            background: #e9f7ef;
+            color: #27ae60;
+            border-left: 4px solid #27ae60;
+        }
+
+        /* Lista de solicitudes */
+        .solicitud-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .solicitud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.8rem;
+        }
+
+        .solicitud-tipo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .solicitud-fecha {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .solicitud-body {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .label-desc {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Status Pipeline Visually */
+        .status-pipeline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .status-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            flex: 1;
+        }
+
+        .status-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+
+        .status-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Step colors based on state */
+        .step-active .status-dot { background: #3498db; }
+        .step-done .status-dot { background: #27ae60; }
+        .step-rejected .status-dot { background: #e74c3c; }
+        
+        .step-done + .status-step::before {
+            /* If previous is done, color the line to current */
+            content: '';
+            position: absolute;
+            top: 12px;
+            right: 50%;
+            width: 100%;
+            height: 2px;
+            background: #27ae60;
+            z-index: 1;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .empty-state h3 { color: #1a5276; margin-bottom: 0.5rem; }
+        .empty-state p { color: #666; font-size: 0.95rem; margin-bottom: 1.5rem; }
+
+        .respuestas-internas {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #ccc;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .respuesta-caja {
+            background: #fdfefe;
+            border-left: 3px solid #ccc;
+            padding: 0.5rem 1rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="navbar-brand">Casa Monarca</div>
+    <div>
+        <a href="{% url 'portal_migrante:dashboard' %}" class="btn-outline">Volver a mis datos</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header">
+        <h2>Mis Solicitudes de Derechos ARCO</h2>
+        <a href="{% url 'portal_migrante:solicitar_arco' %}" class="btn-primary">Nueva Solicitud</a>
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if solicitudes %}
+        {% for s in solicitudes %}
+        <div class="solicitud-card">
+            <div class="solicitud-header">
+                <span class="solicitud-tipo">Solicitud de {{ s.tipo }}</span>
+                <span class="solicitud-fecha">{{ s.fecha_creacion|date:"d M Y, H:i" }}</span>
+            </div>
+            
+            <!-- Descripcion original no se muestra al usuario porque esta cifrada, pero el estado si -->
+            <div class="solicitud-body">
+                <span class="label-desc">ID de Solicitud</span>
+                ARCO-{{ s.pk }} (Registrada de forma segura)
+            </div>
+
+            <div class="status-pipeline">
+                <div class="status-step {% if s.estado != 'pendiente' %}step-done{% else %}step-active{% endif %}">
+                    <div class="status-dot">1</div>
+                    <span class="status-label">Enviada</span>
+                </div>
+                
+                <div class="status-step 
+                    {% if s.estado == 'aprobada_operativo' or s.estado == 'firmada_coordinador' or s.estado == 'ejecutada' %}step-done
+                    {% elif s.estado == 'rechazada' %}step-rejected
+                    {% elif s.estado == 'pendiente' %}
+                    {% else %}step-active{% endif %}">
+                    <div class="status-dot">2</div>
+                    <span class="status-label">Revisión<br>Operativa</span>
+                </div>
+
+                <div class="status-step 
+                    {% if s.estado == 'firmada_coordinador' or s.estado == 'ejecutada' %}step-done
+                    {% elif s.estado == 'rechazada' %}
+                    {% elif s.estado == 'aprobada_operativo' %}step-active{% endif %}">
+                    <div class="status-dot">3</div>
+                    <span class="status-label">Firma<br>Coordinación</span>
+                </div>
+
+                <div class="status-step 
+                    {% if s.estado == 'ejecutada' %}step-done
+                    {% elif s.estado == 'rechazada' %}
+                    {% elif s.estado == 'firmada_coordinador' %}step-active{% endif %}">
+                    <div class="status-dot">4</div>
+                    <span class="status-label">Completada</span>
+                </div>
+            </div>
+
+            {% if s.estado == 'rechazada' %}
+            <div class="respuestas-internas">
+                <span style="color: #c0392b; font-weight: bold;">Solicitud Rechazada</span>
+                {% if s.respuesta_operativo %}
+                    <div class="respuesta-caja" style="border-left-color: #e74c3c;">
+                        <strong>Respuesta:</strong> {{ s.respuesta_operativo }}
+                    </div>
+                {% endif %}
+                {% if s.respuesta_coordinador %}
+                    <div class="respuesta-caja" style="border-left-color: #e74c3c;">
+                        <strong>Respuesta:</strong> {{ s.respuesta_coordinador }}
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% if s.estado == 'ejecutada' %}
+            <div class="respuestas-internas">
+                <span style="color: #27ae60; font-weight: bold;">Solicitud Ejecutada Exitosamente</span>
+                {% if s.respuesta_coordinador %}
+                    <div class="respuesta-caja" style="border-left-color: #27ae60;">
+                        <strong>Comentario:</strong> {{ s.respuesta_coordinador }}
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No tienes solicitudes en tramite</h3>
+            <p>Si deseas corregir, eliminar o restringir el uso de tus datos, puedes enviar una solicitud.</p>
+            <a href="{% url 'portal_migrante:solicitar_arco' %}" class="btn-primary">Ejercer Derechos ARCO</a>
+        </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

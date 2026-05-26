@@ -15,6 +15,7 @@
 7. [Flujo de Operación Crítica (Firma)](#7-flujo-de-operación-crítica-firma)
 8. [Cadena de Auditoría](#8-cadena-de-auditoría)
 9. [Diagrama General del Sistema](#9-diagrama-general-del-sistema)
+10. [Portal del Migrante y Flujo ARCO](#10-portal-del-migrante-y-flujo-arco)
 
 ---
 
@@ -103,18 +104,20 @@ Solicitudes de cambio de rol enviadas por usuarios y respondidas por administrad
 
 Expedientes de personas atendidas. **Ningún dato personal es legible en reposo.**
 
-| Columna           | Tipo               | Cifrado         | Descripción                                                              |
-| ----------------- | ------------------ | --------------- | ------------------------------------------------------------------------ |
-| `id`              | INT                | No              | Identificador primario                                                   |
-| `creado_por_id`   | INT (FK → Usuario) | No              | Usuario que creó el expediente                                           |
-| `fecha_creacion`  | DATETIME           | No              | Timestamp de creación (auto)                                             |
-| `fecha_atencion`  | DATE               | No              | Fecha de atención al caso                                                |
-| `datos_cifrados`  | LONGTEXT           | **AES-256-EAX** | Ciphertext Base64 con todos los datos personales del expediente          |
-| `nonce`           | TEXT               | No              | Nonce AES-EAX en Base64 (16 bytes); único por expediente                 |
-| `tag`             | TEXT               | No              | Tag de autenticación AES-EAX en Base64; permite detectar manipulación    |
-| `verificado`      | BOOL               | No              | Indica si el expediente fue verificado/firmado por un rol autorizado     |
-| `firma_digital`   | LONGTEXT           | No              | Firma RSA-2048 + SHA-256 (PKCS#1 v1.5) en Base64 del hash del expediente |
-| `hash_expediente` | VARCHAR(64)        | No              | SHA-256 del ciphertext; parte de lo firmado digitalmente                 |
+| Columna               | Tipo               | Cifrado                  | Descripción                                                                                                            |
+| --------------------- | ------------------ | ------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `id`                  | INT                | No                       | Identificador primario                                                                                                 |
+| `creado_por_id`       | INT (FK → Usuario) | No                       | Usuario que creó el expediente                                                                                         |
+| `fecha_creacion`      | DATETIME           | No                       | Timestamp de creación (auto)                                                                                           |
+| `fecha_atencion`      | DATE               | No                       | Fecha de atención al caso                                                                                              |
+| `datos_cifrados`      | LONGTEXT           | **AES-256-EAX**          | Ciphertext Base64 con todos los datos personales del expediente                                                        |
+| `nonce`               | TEXT               | No                       | Nonce AES-EAX en Base64 (16 bytes); único por expediente                                                               |
+| `tag`                 | TEXT               | No                       | Tag de autenticación AES-EAX en Base64; permite detectar manipulación                                                  |
+| `verificado`          | BOOL               | No                       | Indica si el expediente fue verificado/firmado por un rol autorizado                                                   |
+| `firma_digital`       | LONGTEXT           | No                       | Firma RSA-2048 + SHA-256 (PKCS#1 v1.5) en Base64 del hash del expediente                                               |
+| `hash_expediente`     | VARCHAR(64)        | No                       | SHA-256 del ciphertext; parte de lo firmado digitalmente                                                               |
+| `folio_hash`          | VARCHAR(64)        | No (es un hash)          | SHA-256 del folio en texto claro; índice de búsqueda segura para el portal del migrante (el folio en claro vive cifrado dentro de `datos_cifrados`) |
+| `etiquetas_oposicion` | LONGTEXT           | **AES-EAX (SECRET_KEY)** | JSON con la lista de etiquetas de Oposición ARCO aplicadas: `[{fecha, etiqueta, coordinador, solicitud_arco_id}]`. Cifrado en BD; visible a los roles de lectura |
 
 ---
 
@@ -150,6 +153,39 @@ Registro de auditoría con integridad garantizada por encadenamiento de hashes.
 
 ---
 
+### 2.8 `portal_migrante_solicitudarco`
+
+Solicitudes de ejercicio de derechos ARCO (Acceso, Rectificación, Cancelación, Oposición) enviadas por el migrante desde el portal público. Todos los textos sensibles están cifrados a nivel de BD con `SECRET_KEY` (cifrado transparente vía `EncryptedTextFieldArco`); el flujo es interno y no requiere descifrado del migrante fuera del servidor.
+
+| Columna                   | Tipo                  | Cifrado                  | Descripción                                                                                                                       |
+| ------------------------- | --------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                      | INT                   | No                       | Identificador primario                                                                                                            |
+| `expediente_id`           | INT (FK → Expediente) | No                       | Expediente sobre el que se ejerce el derecho. `SET_NULL` para conservar la solicitud como registro histórico tras una cancelación |
+| `tipo`                    | VARCHAR(20)           | No                       | `rectificacion` / `cancelacion` / `oposicion`                                                                                     |
+| `estado`                  | VARCHAR(25)           | No                       | `pendiente` / `aprobada_operativo` / `firmada_coordinador` / `ejecutada` / `rechazada`                                            |
+| `descripcion_cifrada`     | LONGTEXT              | **AES-EAX (SECRET_KEY)** | Texto libre del migrante: motivo y detalles                                                                                       |
+| `campos_solicitados`      | LONGTEXT              | **AES-EAX (SECRET_KEY)** | JSON con `{campo: valor}` o `{descripcion_libre: ...}` propuesto por el migrante                                                  |
+| `cambios_propuestos`      | LONGTEXT              | **AES-EAX (SECRET_KEY)** | JSON con el diff que el **Operativo** propone aplicar (solo `rectificacion`); el Coordinador lo aplica al firmar                  |
+| `etiqueta_oposicion`      | LONGTEXT              | **AES-EAX (SECRET_KEY)** | Texto libre del **Operativo** que se anexará a `Expediente.etiquetas_oposicion` al firmar (solo `oposicion`)                      |
+| `hash_solicitud`          | VARCHAR(64)           | No                       | SHA-256 de `descripcion + tipo + expediente_id`; integridad del registro                                                          |
+| `folio_hash_verificacion` | VARCHAR(64)           | No                       | SHA-256 del folio usado al crear la solicitud; verifica titularidad del migrante                                                  |
+| `operativo_id`            | INT (FK → Usuario)    | No                       | Operativo que aprobó/rechazó la solicitud                                                                                         |
+| `respuesta_operativo`     | TEXT                  | No                       | Comentario libre del Operativo                                                                                                    |
+| `fecha_respuesta_operativo` | DATETIME            | No                       | Timestamp de la respuesta del Operativo                                                                                           |
+| `coordinador_id`          | INT (FK → Usuario)    | No                       | Coordinador (o Admin actuando como Coordinador) que firmó                                                                         |
+| `respuesta_coordinador`   | TEXT                  | No                       | Comentario del Coordinador                                                                                                        |
+| `fecha_firma_coordinador` | DATETIME              | No                       | Timestamp de la firma                                                                                                             |
+| `firma_digital`           | LONGTEXT              | No                       | Firma RSA-2048 + SHA-256 (PKCS#1 v1.5) del Coordinador sobre `f"ARCO-{pk}-{tipo}-{hash_solicitud}-{timestamp}"`                    |
+| `admin_id`                | INT (FK → Usuario)    | No                       | Administrador que ejecutó la cancelación final (solo `cancelacion` ejecutada)                                                     |
+| `respuesta_admin`         | TEXT                  | No                       | Comentario del Admin al ejecutar                                                                                                  |
+| `fecha_ejecucion_admin`   | DATETIME              | No                       | Timestamp de la ejecución final                                                                                                   |
+| `firma_digital_admin`     | LONGTEXT              | No                       | Firma RSA-2048 del Admin sobre `f"ARCO-CANCEL-{pk}-{exp_id}-{exp_hash}-{timestamp}"`                                              |
+| `fecha_creacion`          | DATETIME              | No                       | Timestamp de creación de la solicitud                                                                                             |
+
+> **Por qué `SECRET_KEY` y no AES por rol:** la solicitud ARCO es un canal de comunicación interna entre el migrante (sin sesión persistente) y la organización. El migrante no necesita re-descifrarla después de enviarla, y los roles autorizados (Operativo/Coordinador/Admin) pueden leerla porque comparten acceso al servidor. Usar el esquema AES-por-expediente añadiría complejidad sin ganancia de privacidad real.
+
+---
+
 ## 3. Qué Cifra a Qué
 
 ```
@@ -182,7 +218,14 @@ LLAVE AES-256 (por expediente, aleatoria)
 
 LLAVE PRIVADA RSA DEL USUARIO (de firma / .key file)
     │
-    └─ [RSA-2048 + SHA-256 PKCS#1 v1.5] ───────────────► firma_digital (Expediente)
+    └─ [RSA-2048 + SHA-256 PKCS#1 v1.5] ───────────────► firma_digital (Expediente / SolicitudARCO)
+
+FOLIO + NOMBRE_COMPLETO DEL MIGRANTE (portal público)
+    │
+    └─ [Scrypt(folio:nombre, salt=SHA-256(folio))] ──► clave_folio_32B
+            │
+            └─ [AES-256-EAX] ──────────────────────────► llave_aes_cifrada
+                                                          (AccesoExpediente tipo='Migrante')
 
 HASH DEL REGISTRO ANTERIOR + DATOS DEL EVENTO
     │
@@ -420,6 +463,69 @@ USUARIO (con acceso al expediente)
 
 ---
 
+### 6.2 Acceso del Migrante por Folio (Portal público)
+
+El migrante recibe un folio único (formato `CM-YYYYMMDD-XXXX`) al ser registrado por un Operativo. Con ese folio **más su nombre completo** puede acceder a un portal público (`/mi-expediente/`) y ver sus datos en modo solo lectura, sin necesidad de cuenta. La criptografía es simétrica y derivada del par (folio, nombre).
+
+**Al crear el expediente (en [expediente/views.py](expediente/views.py)):**
+
+```
+Backend:
+  ├─ folio = generar_folio()                # CM-YYYYMMDD-XXXX único
+  ├─ datos['folio'] = folio                 # se cifra dentro de datos_cifrados
+  ├─ folio_hash = SHA-256(folio)            # columna folio_hash, indexada
+  ├─ nombre_completo = "{nombre_pila} {primer_apellido} {segundo_apellido}"
+  ├─ clave_folio = Scrypt(folio + ":" + nombre_completo,
+  │                       salt=SHA-256(folio),
+  │                       N=16384, r=8, p=1, dklen=32)
+  ├─ llave_aes_migrante = AES-256-EAX(clave_folio).encrypt(llave_aes_expediente)
+  └─ AccesoExpediente(
+         tipo_acceso='Migrante',
+         usuario=None,
+         llave_aes_cifrada=llave_aes_migrante
+     )
+```
+
+**Al ingresar el migrante (en [portal_migrante/views.py](portal_migrante/views.py)):**
+
+```
+Migrante                          Servidor
+  │                                 │
+  │── POST nombre + folio ─────────►│
+  │                                 ├─ [1] Rate-limit: max 5 intentos/15min por IP
+  │                                 │      (sesión: _arco_intentos_fallidos)
+  │                                 │
+  │                                 ├─ [2] folio_hash = SHA-256(folio)
+  │                                 │      Expediente.objects.filter(folio_hash=...)
+  │                                 │
+  │                                 ├─ [3] AccesoExpediente WHERE
+  │                                 │      tipo_acceso='Migrante' AND expediente=X
+  │                                 │      → llave_aes_cifrada
+  │                                 │
+  │                                 ├─ [4] clave_folio = Scrypt(folio:nombre, salt=SHA-256(folio))
+  │                                 │      llave_aes = AES-EAX(clave_folio).decrypt(llave_aes_cifrada)
+  │                                 │
+  │                                 │      Si falla → "Folio o nombre incorrecto"
+  │                                 │      (mismo mensaje siempre; no filtra info)
+  │                                 │
+  │                                 ├─ [5] datos = AES-EAX(llave_aes, nonce, tag).decrypt(datos_cifrados)
+  │                                 │
+  │                                 ├─ [6] Sesión (15 min sliding):
+  │                                 │      _migrante_expediente_id, _migrante_datos,
+  │                                 │      _migrante_ts, _migrante_folio_hash
+  │                                 │
+  │◄── redirect dashboard ──────────│      → BitacoraEvento(tipo='acceso_migrante')
+```
+
+**Por qué Scrypt(folio:nombre):**
+- Doble factor "algo que tiene" (folio) + "algo que es" (nombre) sin password.
+- El folio aleatorio (~16 bits de entropía visible + timestamp) garantiza unicidad y dificulta enumeración masiva.
+- El salt = SHA-256(folio) hace cada derivación independiente: comprometer una clave no revela ninguna otra.
+- Scrypt N=16384 hace que un atacante con la BD necesite ~10ms/intento para probar combinaciones (folio, nombre) — combinado con el rate limit, infeasible a escala.
+- La organización **no puede** descifrar como migrante: ese acceso solo existe con el nombre real del migrante, no almacenado en claro.
+
+---
+
 ## 7. Flujo de Operación Crítica (Firma)
 
 Requerida por el decorador `@firma_requerida` para: **Editar Expediente**, **Eliminar Expediente**, **Verificar** y la gestión en el **Panel de Administración**.
@@ -471,18 +577,27 @@ Para verificar integridad:
 
 **Eventos registrados:**
 
-| Tipo               | Cuándo se registra          |
-| ------------------ | --------------------------- |
-| `LOGIN`            | Inicio de sesión exitoso    |
-| `LOGOUT`           | Cierre de sesión            |
-| `CREACION`         | Creación de expediente      |
-| `EDICION`          | Modificación de expediente  |
-| `ELIMINACION`      | Eliminación de expediente   |
-| `FIRMA`            | Firma digital de expediente |
-| `EXPORTACION`      | Exportación de expediente   |
-| `CAMBIO_ROL`       | Cambio de rol de usuario    |
-| `CREACION_USUARIO` | Alta de nuevo usuario       |
-| `REVOCACION_CERT`  | Revocación de certificado   |
+| Tipo                                  | Cuándo se registra                                                       |
+| ------------------------------------- | ------------------------------------------------------------------------ |
+| `LOGIN`                               | Inicio de sesión exitoso                                                 |
+| `LOGOUT`                              | Cierre de sesión                                                         |
+| `CREACION`                            | Creación de expediente                                                   |
+| `EDICION`                             | Modificación de expediente                                               |
+| `ELIMINACION`                         | Eliminación de expediente                                                |
+| `FIRMA`                               | Firma digital de expediente                                              |
+| `EXPORTACION`                         | Exportación de expediente                                                |
+| `CAMBIO_ROL`                          | Cambio de rol de usuario                                                 |
+| `CREACION_USUARIO`                    | Alta de nuevo usuario                                                    |
+| `REVOCACION_CERT`                     | Revocación de certificado                                                |
+| `acceso_migrante`                     | Migrante autenticado correctamente en el portal público                  |
+| `acceso_migrante_fallido`             | Intento fallido en el portal (folio/nombre/IP bloqueada)                 |
+| `solicitud_arco_creada`               | Solicitud ARCO enviada por el migrante                                   |
+| `solicitud_arco_aprobada`             | Operativo aprobó / pre-aprobó                                            |
+| `solicitud_arco_rechazada`            | Cualquier actor rechazó la solicitud                                     |
+| `solicitud_arco_firmada_cancelacion`  | Coordinador firmó una cancelación (queda pendiente del Admin)            |
+| `solicitud_arco_ejecutada`            | Rectificación u oposición aplicada por Coordinador                       |
+| `solicitud_arco_cancelacion_rechazada`| Admin rechazó la ejecución final de una cancelación                      |
+| `expediente_cancelado_arco`           | Admin ejecutó la cancelación: expediente eliminado físicamente           |
 
 ---
 
@@ -538,6 +653,149 @@ Para verificar integridad:
 ║                                                                      ║
 ╚══════════════════════════════════════════════════════════════════════╝
 ```
+
+---
+
+## 10. Portal del Migrante y Flujo ARCO
+
+El módulo [`portal_migrante/`](portal_migrante/) implementa el ejercicio de los **Derechos ARCO** (Acceso, Rectificación, Cancelación, Oposición) garantizados al migrante por la legislación de protección de datos. El acceso al portal se documenta en [§ 6.2](#62-acceso-del-migrante-por-folio-portal-público); esta sección detalla los tres sub-flujos de solicitud y la cadena criptográfica de cada uno.
+
+### 10.1 Estados de una `SolicitudARCO`
+
+```
+                                ┌───────────────────────────┐
+                                │     ┌─► rechazada         │
+                                │     │   (terminal)        │
+   pendiente ──► aprobada_operativo ──► ejecutada (rect./op.)
+                                │
+                                └─► firmada_coordinador ──► ejecutada (cancel.)
+                                                          └─► rechazada
+```
+
+- **pendiente**: creada por el migrante; espera al Operativo.
+- **aprobada_operativo**: el Operativo aprobó (y, según el tipo, propuso cambios concretos o escribió la etiqueta de oposición).
+- **firmada_coordinador**: estado intermedio usado **solo en cancelación**; el Coordinador firmó pero la ejecución física requiere al Admin.
+- **ejecutada**: efecto aplicado al expediente (rectificación/oposición) o expediente borrado (cancelación).
+- **rechazada**: terminal en cualquier paso.
+
+### 10.2 Quién hace qué
+
+| Acción                              | Migrante | Operativo                       | Coordinador                                | Administrador                              |
+| ----------------------------------- | :------: | ------------------------------- | ------------------------------------------ | ------------------------------------------ |
+| Crear solicitud                     |    ✅    |                                 |                                            |                                            |
+| Aprobar Rectificación + proponer diff |          | ✅ (formulario del expediente)  |                                            |                                            |
+| Aprobar Oposición + escribir etiqueta |          | ✅                              |                                            |                                            |
+| Pre-aprobar Cancelación             |          | ✅                              |                                            |                                            |
+| Firmar Rectificación (aplica diff)  |          |                                 | ✅ (con `.key`)                            | ✅                                         |
+| Firmar Oposición (anexa etiqueta)   |          |                                 | ✅ (con `.key`)                            | ✅                                         |
+| Firmar validación de Cancelación    |          |                                 | ✅ (con `.key`)                            | ✅                                         |
+| **Ejecutar Cancelación** (borrar exp.) |       |                                 |                                            | ✅ (solo Admin, con `.key`)                |
+
+> **Principio de doble control:** ninguna modificación a un expediente ocurre sin la firma criptográfica de un Coordinador (`@firma_requerida`). La eliminación física requiere además la firma de un Administrador, garantizando el principio de mínimo privilegio.
+
+### 10.3 Flujo de Rectificación
+
+```
+[1] MIGRANTE (portal público)
+     │   POST /mi-expediente/arco/
+     │   tipo='rectificacion', descripcion, campos_solicitados
+     │
+     │   campos_solicitados se cifra con AES-EAX(SECRET_KEY) → BD
+     ▼
+[2] OPERATIVO
+     │   GET /expediente/arco/responder/<pk>/
+     │   Sistema: descifra Expediente con _llaves_rol_cache['Operativo']
+     │   UI: muestra formulario del expediente PRELLENADO + solicitud
+     │   POST aprobar:
+     │     diff = {k: v for k, v in nuevos.items()
+     │             if str(actuales.get(k)) != str(v)}
+     │     solicitud.cambios_propuestos = AES-EAX(SECRET_KEY).encrypt(JSON(diff))
+     │     solicitud.estado = 'aprobada_operativo'
+     ▼
+[3] COORDINADOR (con .key cargado)
+     │   GET /expediente/arco/firmar/<pk>/
+     │   UI: muestra cambios_dict legible (tabla campo → valor nuevo)
+     │   POST firmar:
+     │     [a] firma_b64 = RSA-PKCS1v15(llave_privada_firma,
+     │                                  f"ARCO-{pk}-rectificacion-{hash}-{ts}")
+     │     [b] llave_aes = RSA-OAEP(llaves_rol[rol], AccesoExpediente.llave_aes_cifrada)
+     │     [c] datos = AES-EAX(llave_aes).decrypt(expediente.datos_cifrados)
+     │     [d] datos.update(cambios_propuestos_dict)
+     │     [e] nuevo_paquete = AES-EAX(llave_aes).encrypt(JSON(datos))
+     │     [f] expediente.{datos_cifrados, nonce, tag} = nuevo_paquete
+     │         expediente.hash_expediente = SHA-256(nuevo_paquete.datos_cifrados)
+     │         expediente.firma_digital = RSA-PKCS1v15(llave_privada_firma, hash)
+     │         expediente.verificado = True
+     │     [g] solicitud.estado = 'ejecutada'
+     ▼
+   EXPEDIENTE ACTUALIZADO Y FIRMADO
+```
+
+### 10.4 Flujo de Cancelación (5 estados)
+
+```
+[1] MIGRANTE: POST tipo='cancelacion' → solicitud.estado='pendiente'
+     ▼
+[2] OPERATIVO: pre-aprueba (sin formulario adicional)
+              → solicitud.estado='aprobada_operativo'
+     ▼
+[3] COORDINADOR (con .key):
+       firma_b64 = RSA-PKCS1v15(llave_privada_firma,
+                                f"ARCO-{pk}-cancelacion-{hash}-{ts}")
+       solicitud.firma_digital = firma_b64
+       solicitud.estado = 'firmada_coordinador'   ← Estado intermedio
+       (NO se elimina el expediente)
+     ▼
+[4] ADMINISTRADOR (con .key):
+       GET /expediente/arco/ejecutar/<pk>/
+       Muestra timeline completo (migrante → operativo → coord → admin)
+       POST ejecutar:
+         firma_admin = RSA-PKCS1v15(llave_privada_firma,
+                                    f"ARCO-CANCEL-{pk}-{exp_id}-{exp_hash}-{ts}")
+         solicitud.firma_digital_admin = firma_admin
+         solicitud.estado = 'ejecutada'
+         BitacoraEvento(tipo='expediente_cancelado_arco',
+                        descripcion=f'Expediente #{exp_id} (hash={exp_hash}) eliminado...')
+         SolicitudARCO.objects.filter(expediente=exp).update(expediente=None)
+         expediente.delete()
+     ▼
+[5] EXPEDIENTE BORRADO FÍSICAMENTE
+   (Las solicitudes ARCO previas conservan registro histórico con expediente=NULL)
+```
+
+> **Auditoría tras borrado:** antes del `delete()` se registra el `hash_expediente` previo en la bitácora, junto con la firma RSA del Admin. Esto permite demostrar, sin guardar PII, que la eliminación se realizó conforme al procedimiento ARCO firmado.
+
+### 10.5 Flujo de Oposición
+
+```
+[1] MIGRANTE: POST tipo='oposicion'
+     ▼
+[2] OPERATIVO: escribe etiqueta_oposicion (texto libre)
+              → cifrada con AES-EAX(SECRET_KEY) en BD
+              → solicitud.estado='aprobada_operativo'
+     ▼
+[3] COORDINADOR (con .key):
+       firma_b64 = RSA-PKCS1v15(...)
+       expediente.etiquetas_oposicion (JSON cifrado en BD):
+         append({fecha, etiqueta, coordinador, solicitud_arco_id})
+       solicitud.estado='ejecutada'
+     ▼
+   EXPEDIENTE CON ETIQUETA VISIBLE A ROLES DE LECTURA
+```
+
+### 10.6 Resumen criptográfico del flujo ARCO
+
+| Pieza                              | Algoritmo                | Llave                                     |
+| ---------------------------------- | ------------------------ | ----------------------------------------- |
+| `descripcion_cifrada` (BD)         | AES-256-EAX              | SHA-256(`SECRET_KEY`)                     |
+| `campos_solicitados` (BD)          | AES-256-EAX              | SHA-256(`SECRET_KEY`)                     |
+| `cambios_propuestos` (BD)          | AES-256-EAX              | SHA-256(`SECRET_KEY`)                     |
+| `etiqueta_oposicion` (BD)          | AES-256-EAX              | SHA-256(`SECRET_KEY`)                     |
+| `expediente.etiquetas_oposicion`   | AES-256-EAX              | SHA-256(`SECRET_KEY`)                     |
+| `solicitud.firma_digital` (coord.) | RSA-2048 + SHA-256 PKCS1 | `llave_privada_firma` (`.key` SAT, sesión)|
+| `solicitud.firma_digital_admin`    | RSA-2048 + SHA-256 PKCS1 | `llave_privada_firma` (`.key` SAT, sesión)|
+| Re-cifrado del expediente (rect.)  | AES-256-EAX              | Llave AES original del expediente (reutilizada) |
+| Nueva `expediente.firma_digital`   | RSA-2048 + SHA-256 PKCS1 | `llave_privada_firma` del Coordinador     |
 
 ---
 

@@ -1,5 +1,22 @@
 from django.db import models
 from django.conf import settings
+from cripto.crypto import encriptar_valor_db, desencriptar_valor_db
+
+
+class EncryptedTextFieldExpediente(models.TextField):
+    """Campo de texto cifrado con la SECRET_KEY del servidor (mismo patron que EncryptedTextFieldArco)."""
+
+    def get_prep_value(self, value):
+        value = super().get_prep_value(value)
+        return encriptar_valor_db(value)
+
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        return desencriptar_valor_db(value)
+
+    def to_python(self, value):
+        return super().to_python(value)
 
 
 class Expediente(models.Model):
@@ -26,6 +43,15 @@ class Expediente(models.Model):
 
     # Hash del expediente para auditoría
     hash_expediente = models.CharField(max_length=64)
+
+    # Hash del folio del migrante para búsqueda segura desde el portal.
+    # El folio en texto claro vive dentro de datos_cifrados.
+    folio_hash = models.CharField(max_length=64, blank=True, null=True, db_index=True)
+
+    # Etiquetas de oposición ARCO aplicadas por Coordinadores.
+    # JSON con lista de {"fecha", "etiqueta", "coordinador"}. Cifrado en BD
+    # con SECRET_KEY (metadato administrativo, no PII del migrante).
+    etiquetas_oposicion = EncryptedTextFieldExpediente(blank=True, default='')
 
     def __str__(self):
         return f"Expediente #{self.pk} — {self.fecha_atencion} — {self.creado_por}"

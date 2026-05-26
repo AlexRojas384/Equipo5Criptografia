@@ -305,6 +305,19 @@
         </a>
         {% endif %}
 
+        {% if rol == 'Operativo' or rol == 'Coordinador_Administracion' or rol == 'Coordinador_Acompanamiento' or rol == 'Administrador' %}
+        <a href="{% url 'expediente:lista_arco' %}" class="card naranja">
+            <div class="card-header">
+                <div class="card-icon">⚖️</div>
+                {% if solicitudes_arco_pendientes %}
+                <span class="notif-badge">{{ solicitudes_arco_pendientes }}</span>
+                {% endif %}
+            </div>
+            <div class="card-title">Solicitudes ARCO</div>
+            <div class="card-desc">Gestionar derechos de acceso, rectificación, cancelación y oposición.</div>
+        </a>
+        {% endif %}
+
         {% if rol != 'Administrador' %}
         <a href="{% url 'usuarios:solicitar_rol' %}" class="card morado">
             <div class="card-icon">✉️</div>

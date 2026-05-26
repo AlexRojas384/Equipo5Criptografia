@@ -349,3 +349,61 @@ def desencriptar_valor_db(paquete_b64: str) -> str:
     except Exception:
         # En caso de error o datos no cifrados (código legacy), retornamos tal cual
         return paquete_b64
+
+
+# ─── PORTAL MIGRANTE (folio-based access) ────────────────────────────────────
+
+def generar_folio() -> str:
+    """
+    Genera un folio unico para el migrante con el formato CM-YYYYMMDD-XXXX.
+    Los 4 caracteres finales son hexadecimales aleatorios (65 536 combinaciones).
+    El folio se entrega fisicamente al migrante y es su unica credencial de acceso.
+    """
+    fecha = datetime.datetime.utcnow().strftime('%Y%m%d')
+    sufijo = secrets.token_hex(2).upper()  # 2 bytes = 4 chars hex
+    return f"CM-{fecha}-{sufijo}"
+
+
+def derivar_clave_folio(folio: str, nombre_completo: str) -> bytes:
+    """
+    Deriva una clave AES-256 (32 bytes) usando Scrypt a partir del folio y el
+    nombre completo del migrante.
+
+    El secreto es la concatenacion 'folio:nombre_normalizado'. El salt es el
+    SHA-256 del folio, lo que ancla la derivacion a ese expediente en particular
+    y separa el dominio criptografico del login normal (que usa salt_login aleatorio).
+
+    Parametros de Scrypt identicos a los del login (N=16384, r=8, p=1, dklen=32).
+    """
+    nombre_normalizado = nombre_completo.strip().lower()
+    secreto = f"{folio}:{nombre_normalizado}".encode('utf-8')
+    salt = hashlib.sha256(folio.encode('utf-8')).digest()  # 32 bytes deterministico
+    return hashlib.scrypt(secreto, salt=salt, n=16384, r=8, p=1, dklen=32)
+
+
+def cifrar_llave_aes_simetrica(llave_aes: bytes, clave_derivada: bytes) -> str:
+    """
+    Cifra una llave AES-256 con otra clave simetrica usando AES-256-EAX.
+    Retorna base64(nonce + tag + ciphertext).
+    Se usa para almacenar la llave AES del expediente cifrada con la clave del folio.
+    """
+    cipher = AES.new(clave_derivada, AES.MODE_EAX)
+    ciphertext, tag = cipher.encrypt_and_digest(llave_aes)
+    paquete = cipher.nonce + tag + ciphertext
+    return base64.b64encode(paquete).decode('utf-8')
+
+
+def descifrar_llave_aes_simetrica(llave_cifrada_b64: str, clave_derivada: bytes) -> bytes:
+    """
+    Descifra una llave AES-256 cifrada simetricamente (AES-256-EAX).
+    Lanza ValueError si la clave derivada es incorrecta (autenticacion fallida).
+    """
+    paquete = base64.b64decode(llave_cifrada_b64)
+    nonce = paquete[:16]
+    tag = paquete[16:32]
+    ciphertext = paquete[32:]
+    cipher = AES.new(clave_derivada, AES.MODE_EAX, nonce=nonce)
+    try:
+        return cipher.decrypt_and_verify(ciphertext, tag)
+    except Exception as e:
+        raise ValueError("Folio o nombre incorrecto.") from e

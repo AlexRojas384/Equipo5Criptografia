@@ -114,6 +114,19 @@ Credenciales por defecto:
 - **admin_prod** / `CasaMonarca2026!`
 - **admin_contingencia** / `CasaMonarca2026!`
 
+### 10. Acceder al Portal del Migrante
+
+El portal público no requiere login. El migrante usa el folio que el Operativo le entregó al registrar su expediente (formato `CM-YYYYMMDD-XXXX`) más su nombre completo tal como fue capturado.
+
+Accede en: [http://127.0.0.1:8000/mi-expediente/](http://127.0.0.1:8000/mi-expediente/)
+
+Desde el portal el migrante puede:
+- **Consultar** sus datos personales registrados.
+- **Ejercer derechos ARCO**: Rectificación, Cancelación y Oposición.
+- **Revisar el estado** de sus solicitudes previas.
+
+> El acceso usa una llave AES derivada vía Scrypt(folio:nombre_completo, salt=SHA-256(folio)). Si el folio o el nombre no coinciden con lo registrado, el sistema responde con un mensaje genérico para no filtrar información. Hay rate-limit de 5 intentos por IP cada 15 minutos.
+
 ---
 
 ## Casos Especiales y Solucion de Problemas
@@ -136,31 +149,34 @@ El `SECRET_KEY` en el archivo `.env` se usa como base para el cifrado transparen
 
 ```text
 casa_monarca/
-├── config/          # Configuracion de Django
-├── usuarios/        # Autenticacion y RBAC con llaves de rol
-├── expediente/      # Gestion de expedientes cifrados
-├── auditoria/       # Bitacora con chain hash
-├── cripto/          # Motor AES-256 + RSA-2048 + X.509
-├── templates/       # HTML templates
-├── .env.example     # Plantilla de variables
-├── requirements.txt # Dependencias
-└── manage.py        # Orquestador
+├── config/           # Configuracion de Django
+├── usuarios/         # Autenticacion y RBAC con llaves de rol
+├── expediente/       # Gestion de expedientes cifrados + flujo ARCO interno
+├── portal_migrante/  # Portal publico del migrante (acceso por folio) + solicitudes ARCO
+├── auditoria/        # Bitacora con chain hash
+├── cripto/           # Motor AES-256 + RSA-2048 + X.509 + Scrypt
+├── templates/        # HTML templates
+├── .env.example      # Plantilla de variables
+├── requirements.txt  # Dependencias
+└── manage.py         # Orquestador
 ```
 
 ---
 
 ## Roles del Sistema
 
-| Rol                           | Nivel         | Permisos | Descripcion                                    |
-| :---------------------------- | :------------ | :------- | :--------------------------------------------- |
-| **Administrador**             | Administrador | CRUD     | Control total del sistema. 2 cuentas base.     |
-| **Coordinador_Administracion**| Coordinador   | CRU      | Coordinador de Administracion.                 |
-| **Coordinador_Legal**         | Coordinador   | CRU      | Coordinador Legal.                             |
-| **Coordinador_Psicosocial**   | Coordinador   | CRU      | Coordinador Psicosocial.                       |
-| **Coordinador_Humanitario**   | Coordinador   | CRU      | Coordinador Humanitario.                       |
-| **Coordinador_Comunicacion**  | Coordinador   | CRU      | Coordinador de Comunicacion.                   |
-| **Operativo**                 | Operativo     | CR       | Revisa datos y canaliza a coordinadores.       |
-| **Usuario**                   | Usuario       | C        | Solo crea expedientes (becarios, voluntarios). |
+| Rol                           | Nivel         | Permisos | Responsabilidades ARCO                                                          | Descripcion                                    |
+| :---------------------------- | :------------ | :------- | :------------------------------------------------------------------------------ | :--------------------------------------------- |
+| **Administrador**             | Administrador | CRUD     | Firma como Coordinador + **ejecuta la cancelacion final** (paso 5: borra exp.)  | Control total del sistema. 2 cuentas base.     |
+| **Coordinador_Administracion**| Coordinador   | CRU      | Firma criptograficamente (aplica Rect./Op.; valida Cancel. para pasar al Admin) | Coordinador de Administracion.                 |
+| **Coordinador_Acompanamiento**| Coordinador   | CRU      | Firma criptograficamente (aplica Rect./Op.; valida Cancel. para pasar al Admin) | Coordinador de Acompanamiento.                 |
+| **Coordinador_Legal**         | Coordinador   | CRU      | (Sin acceso al panel ARCO por defecto)                                          | Coordinador Legal.                             |
+| **Coordinador_Psicosocial**   | Coordinador   | CRU      | (Sin acceso al panel ARCO por defecto)                                          | Coordinador Psicosocial.                       |
+| **Coordinador_Humanitario**   | Coordinador   | CRU      | (Sin acceso al panel ARCO por defecto)                                          | Coordinador Humanitario.                       |
+| **Coordinador_Comunicacion**  | Coordinador   | CRU      | (Sin acceso al panel ARCO por defecto)                                          | Coordinador de Comunicacion.                   |
+| **Operativo**                 | Operativo     | CR       | **Propone cambios** (Rect.), **escribe etiqueta** (Op.), **pre-aprueba** (Cancel.) | Revisa datos y canaliza a coordinadores.       |
+| **Usuario**                   | Usuario       | C        | —                                                                               | Solo crea expedientes (becarios, voluntarios). |
+| **Migrante (sin cuenta)**     | Portal publico| R (solo sus datos) | Crea solicitudes ARCO desde el portal `/mi-expediente/`                  | Acceso anonimo por folio + nombre.             |
 
 ---
 
@@ -171,6 +187,8 @@ casa_monarca/
 - **Integridad:** Bitácora protegida por encadenamiento de hashes (SHA-256).
 - **Transparencia:** Cifrado a nivel de campo en base de datos para datos sensibles.
 - **Zero-Trust en Edición:** La edición y validación de expedientes requiere subir el archivo `.key` a la plataforma.
+- **Portal del Migrante (Scrypt + AES simétrico):** el acceso del migrante usa Scrypt(folio:nombre, salt=SHA-256(folio)) sin password. La organización no puede descifrar como migrante (no almacena el nombre en claro fuera del expediente cifrado). Rate-limit de 5 intentos / 15 min por IP.
+- **ARCO con doble firma:** la rectificación y oposición se ejecutan automáticamente al firmar el Coordinador (re-cifrado con la misma llave AES del expediente). La cancelación exige **firma de Coordinador + firma de Admin** antes de eliminar físicamente el expediente; el hash del expediente borrado queda en bitácora para auditoría sin guardar PII.
 
 ---
 
