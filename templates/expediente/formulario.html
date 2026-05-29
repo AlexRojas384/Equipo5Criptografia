@@ -2,247 +2,80 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrevista de Ingreso — Casa Monarca</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #F5F5F5;
-            min-height: 100vh;
-        }
-
-        .navbar {
-            background: #1A1A1A;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; font-family: 'Montserrat', sans-serif; }
-
-        .btn-back {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-size: 0.875rem;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 0.3rem 0.75rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .btn-back:hover { background: white; color: #1A1A1A; border-color: white; }
-
-        .container {
-            max-width: 700px;
-            margin: 2rem auto;
-            padding: 0 1.5rem 3rem;
-        }
-
-        .form-header {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem 2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-            border-left: 4px solid #2D8B57;
-        }
-
-        .form-header h2 {
-            color: #1A1A1A;
-            font-size: 1.2rem;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .form-header p {
-            color: #9B9B9B;
-            font-size: 0.85rem;
-            margin-top: 0.4rem;
-        }
-
-        .form-card {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-        }
-
-        .form-group {
-            margin-bottom: 1.4rem;
-        }
-
-        label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 0.4rem;
-        }
-
-        .help-text {
-            font-size: 0.78rem;
-            color: #888;
-            margin-top: 0.2rem;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        select {
-            width: 100%;
-            padding: 0.7rem 1rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
-            background: white;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #D42145;
-        }
-
-        .errorlist {
-            list-style: none;
-            color: #c0392b;
-            font-size: 0.8rem;
-            margin-top: 0.3rem;
-        }
-
-        .alert {
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            font-size: 0.875rem;
-        }
-
-        .alert-success {
-            background: #eafaf1;
-            color: #1e8449;
-            border-left: 4px solid #1e8449;
-        }
-
-        .alert-error {
-            background: #fdecea;
-            color: #c0392b;
-            border-left: 4px solid #c0392b;
-        }
-
-        .divider {
-            border: none;
-            border-top: 1px solid #eee;
-            margin: 1.5rem 0;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 0.9rem;
-            background: #2D8B57;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 0.5rem;
-        }
-
-        .btn-submit:hover { background: #1e6b41; }
-
-        .lock-notice {
-            text-align: center;
-            font-size: 0.78rem;
-            color: #888;
-            margin-top: 0.75rem;
-        }
-    </style>
+    {% include "cm_base.html" %}
 </head>
 <body>
 
+<div class="cm-top-accent"></div>
 <nav class="navbar">
-    <div class="navbar-brand">
-        <img src="{% static 'img/logo_icon.png' %}" alt="Logo" style="height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 4px;">
-        <span style="font-family: 'Montserrat', sans-serif;">Casa Monarca</span>
+    <a href="{% url 'expediente:dashboard' %}" class="brand">
+        <span class="cm-mark"></span>
+        <span class="wm">Casa Monarca<small>Ayuda Humanitaria al Migrante</small></span>
+    </a>
+    <div class="nav-right">
+        <a href="{% url 'expediente:dashboard' %}" class="btn btn-ghost btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+            Volver
+        </a>
     </div>
-    <a href="{% url 'expediente:dashboard' %}" class="btn-back">← Volver</a>
 </nav>
 
-<div class="container">
-
+<div class="page page-narrow">
     {% if messages %}
         {% for message in messages %}
-        <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
-            {{ message }}
-        </div>
+        <div class="alert {% if message.tags == 'success' %}success{% else %}error{% endif %}">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
-    <div class="form-header">
-        <h2>Entrevista de ingreso al albergue</h2>
-        <p>Casa Monarca — Ayuda Humanitaria al Migrante, A.B.P.<br>
-        Todos los campos marcados son obligatorios. Los datos serán cifrados automáticamente.</p>
+    <div class="page-head">
+        <div class="eyebrow">Nuevo expediente</div>
+        <h1>Entrevista de ingreso al albergue</h1>
+        <div class="sub">Todos los campos marcados son obligatorios. Los datos serán cifrados automáticamente.</div>
     </div>
 
-    <div class="form-card">
+    <div class="section">
         <form method="POST">
             {% csrf_token %}
 
             {% for field in form %}
-            <div class="form-group">
+            <div class="field">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
-                {% if field.help_text %}
-                    <p class="help-text">{{ field.help_text }}</p>
-                {% endif %}
+                {% if field.help_text %}<div class="hint">{{ field.help_text }}</div>{% endif %}
                 {% if field.errors %}
                     <ul class="errorlist">
-                        {% for error in field.errors %}
-                        <li>{{ error }}</li>
-                        {% endfor %}
+                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
                     </ul>
                 {% endif %}
             </div>
             {% endfor %}
 
-            <div class="form-group privacy-group" style="display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
-                <input type="checkbox" name="aviso_privacidad" id="id_aviso_privacidad" required style="width: auto; margin-top: 0.25rem; transform: scale(1.15); cursor: pointer;">
-                <label for="id_aviso_privacidad" style="display: inline; font-weight: 500; font-size: 0.875rem; color: #444; cursor: pointer; line-height: 1.4; margin-bottom: 0;">
-                    He mostrado el <a href="{% url 'portal_migrante:privacidad' %}" target="_blank" style="color: #2980b9; text-decoration: underline; font-weight: 600;">Aviso de Privacidad</a> al migrante y está de acuerdo con los términos de Casa Monarca.
+            <div class="field" style="display:flex; align-items:flex-start; gap:.75rem; margin-top:1.5rem; padding:1rem; background:var(--bg); border-radius:var(--r-sm);">
+                <input type="checkbox" name="aviso_privacidad" id="id_aviso_privacidad" required style="width:auto; margin-top:.2rem; accent-color:var(--primary); transform:scale(1.15); cursor:pointer;">
+                <label for="id_aviso_privacidad" style="display:inline; font-weight:500; font-size:.875rem; color:var(--ink-soft); cursor:pointer; line-height:1.4; margin-bottom:0;">
+                    He mostrado el <a href="{% url 'portal_migrante:privacidad' %}" target="_blank" style="color:var(--primary); text-decoration:underline; font-weight:600;">Aviso de Privacidad</a> al migrante y está de acuerdo con los términos de Casa Monarca.
                 </label>
             </div>
 
             <hr class="divider">
 
-
-            <button type="submit" class="btn-submit">Guardar expediente</button>
-            <p class="lock-notice">Los datos serán cifrados con AES-256-EAX. El expediente quedará pendiente de verificación.</p>
+            <button type="submit" class="btn btn-primary btn-block">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9.5 12 1.8 1.8L15 10"/></svg>
+                Guardar expediente
+            </button>
+            <p class="muted" style="text-align:center; font-size:.78rem; margin-top:.75rem;">Los datos serán cifrados con AES-256-EAX. El expediente quedará pendiente de verificación.</p>
         </form>
     </div>
 </div>
 
 {% if folio_mostrar %}
-<!-- Modal para mostrar el folio generado al migrante -->
-<div id="folioModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-    <div style="background: white; padding: 2.5rem; border-radius: 12px; max-width: 450px; width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-        <h2 style="color: #1A1A1A; font-family: 'Montserrat', sans-serif; margin-bottom: 1rem;">Expediente Registrado</h2>
-        <p style="color: #555; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5;">Entregue este folio al migrante. Es su única forma de acceder a sus datos y ejercer sus derechos ARCO en el portal. <strong>No se podrá recuperar.</strong></p>
-        
-        <div style="background: #FFF8F5; border: 2px dashed #E07030; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
-            <div style="font-family: monospace; font-size: 1.8rem; font-weight: bold; color: #1A1A1A; letter-spacing: 2px;">
-                {{ folio_mostrar }}
-            </div>
-        </div>
-        
-        <button onclick="document.getElementById('folioModal').style.display='none'" style="background: #D42145; color: white; border: none; padding: 0.8rem 2rem; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem;">
-            He anotado el folio
-        </button>
+<div id="folioModal" class="modal-overlay">
+    <div class="modal">
+        <h2 style="margin-bottom:1rem;">Expediente registrado</h2>
+        <p class="muted" style="font-size:.95rem; margin-bottom:.5rem; line-height:1.5;">Entregue este folio al migrante. Es su única forma de acceder a sus datos y ejercer sus derechos ARCO en el portal. <strong style="color:var(--ink);">No se podrá recuperar.</strong></p>
+        <div class="folio-box"><div class="code">{{ folio_mostrar }}</div></div>
+        <button onclick="document.getElementById('folioModal').style.display='none'" class="btn btn-primary btn-block">He anotado el folio</button>
     </div>
 </div>
 {% endif %}

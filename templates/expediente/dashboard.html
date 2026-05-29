@@ -1,269 +1,80 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — Casa Monarca</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #F5F5F5;
-            min-height: 100vh;
-        }
-
-        /* Navbar */
-        .navbar {
-            background: #1A1A1A;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar-brand {
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-
-        .navbar-user {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .navbar-user span {
-            color: #aed6f1;
-            font-size: 0.875rem;
-        }
-
-        .badge-rol {
-            background: #D42145;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .btn-logout {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-size: 0.875rem;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 0.3rem 0.75rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.2rem;
-        }
-
-        .btn-logout:hover {
-            background: white;
-            color: #1A1A1A;
-            border-color: white;
-        }
-
-        /* Contenido */
-        .container {
-            max-width: 900px;
-            margin: 2.5rem auto;
-            padding: 0 1.5rem;
-        }
-
-        .welcome {
-            margin-bottom: 2rem;
-        }
-
-        .welcome h2 {
-            color: #1A1A1A;
-            font-size: 1.5rem;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .welcome p {
-            color: #666;
-            margin-top: 0.3rem;
-            font-size: 0.95rem;
-        }
-
-        /* Tarjetas */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1.25rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.75rem 1.5rem;
-            text-decoration: none;
-            color: inherit;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-            border-top: 4px solid #1A1A1A;
-            border-left: none;
-            transition: transform 0.15s, box-shadow 0.15s;
-            display: block;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-        }
-
-        .card-icon {
-            margin-bottom: 0.75rem;
-            color: #4A4A4A;
-        }
-
-        .card-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #1A1A1A;
-            font-family: 'Montserrat', sans-serif;
-            margin-bottom: 0.4rem;
-        }
-
-        .card-desc {
-            font-size: 0.8rem;
-            color: #888;
-            line-height: 1.4;
-        }
-
-        /* Colores por tipo de tarjeta */
-        .card.verde  { border-top-color: #2D8B57; }
-        .card.azul   { border-top-color: #3A7CA5; }
-        .card.naranja{ border-top-color: #E07030; }
-        .card.rojo   { border-top-color: #D42145; }
-        .card.morado { border-top-color: #7D3C98; }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .notif-badge {
-            background: #D42145;
-            color: white;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 0.15rem 0.5rem;
-            border-radius: 10px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Toggle Button */
-        .btn-status {
-            background: white;
-            color: #1A1A1A;
-            border: 1px solid #E8E8E8;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .btn-status:hover {
-            background: #F5F5F5;
-            border-color: #9B9B9B;
-            transform: translateY(-1px);
-        }
-        .btn-status.active {
-            background: #1A1A1A;
-            color: white;
-            border-color: #1A1A1A;
-        }
-
-        .status-panel {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s, margin 0.3s;
-            opacity: 0;
-            margin-bottom: 0;
-        }
-        .status-panel.show {
-            max-height: 500px; /* Suficiente para el contenido */
-            opacity: 1;
-            margin-bottom: 2rem;
-            transition: max-height 0.5s ease-in, opacity 0.3s, margin 0.3s;
-        }
-    </style>
+    <title>Panel — Casa Monarca</title>
+    {% include "cm_base.html" %}
 </head>
 <body>
 
+<div class="cm-top-accent"></div>
 <nav class="navbar">
-    <div class="navbar-brand">
-        <img src="{% static 'img/logo_icon.png' %}" alt="Logo" style="height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 4px;">
-        <span style="font-family: 'Montserrat', sans-serif;">Casa Monarca</span>
-    </div>
-    <div class="navbar-user">
-        <span>{{ usuario.get_full_name|default:usuario.username }}</span>
-        <span class="badge-rol">{{ rol }}</span>
-        <a href="{% url 'usuarios:cambiar_password' %}" class="btn-logout" title="Cambiar contraseña"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg></a>
-        <a href="{% url 'usuarios:logout' %}" class="btn-logout">Cerrar sesión</a>
+    <a href="{% url 'expediente:dashboard' %}" class="brand">
+        <span class="cm-mark"></span>
+        <span class="wm">Casa Monarca<small>Ayuda Humanitaria al Migrante</small></span>
+    </a>
+    <div class="nav-right">
+        <div class="nav-user">
+            <span class="who">{{ usuario.get_full_name|default:usuario.username }}</span>
+            <span class="rol">{{ rol }}</span>
+        </div>
+        <a href="{% url 'usuarios:cambiar_password' %}" class="nav-icon-btn" title="Cambiar contraseña">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.5 12.5 9-9M16 4l3 3M14 6l3 3"/></svg>
+        </a>
+        <a href="{% url 'usuarios:logout' %}" class="btn btn-ghost btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+            Salir
+        </a>
     </div>
 </nav>
 
-<div class="container">
-    <div class="welcome" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-        <div>
-            <h2>Bienvenido, {{ usuario.get_full_name|default:usuario.username }}</h2>
-            <p>Selecciona una acción.</p>
+<div class="page">
+    <div class="page-head">
+        <div class="head-row">
+            <div>
+                <div class="eyebrow">Panel de control</div>
+                <h1>Hola, {{ usuario.get_full_name|default:usuario.username }}</h1>
+                <div class="sub">Selecciona una acción para comenzar.</div>
+            </div>
+            <button id="toggle-status" class="btn btn-secondary" onclick="toggleStatusPanel()">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9.5 12 1.8 1.8L15 10"/></svg>
+                Seguridad y permisos <span id="status-arrow">▸</span>
+            </button>
         </div>
-        <button id="toggle-status" class="btn-status" onclick="toggleStatusPanel()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Seguridad y Permisos <span id="status-arrow">▼</span>
-        </button>
     </div>
 
     <div id="status-panel" class="status-panel">
-        <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.07); display: flex; gap: 2rem; border-top: 4px solid #D42145; align-items: flex-start; justify-content: space-between;">
-            <div style="flex: 1;">
-                <h3 style="color: #1A1A1A; font-family: 'Montserrat', sans-serif; margin-bottom: 0.5rem; font-size: 1.1rem;">Estado Criptográfico</h3>
-                <p style="font-size: 0.9rem; margin-bottom: 0.3rem;">
-                    <strong>Llaves RSA:</strong>
+        <div class="section" style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+            <div>
+                <div class="eyebrow">Estado criptográfico</div>
+                <div class="row gap-sm mb">
+                    <span class="muted" style="font-size:.9rem;">Llaves RSA</span>
                     {% if tiene_llaves %}
-                        <span style="color: #1e8449; font-weight: bold;">Activas</span>
+                        <span class="badge badge-ok">Activas</span>
                     {% else %}
-                        <span style="color: #c0392b; font-weight: bold;">No generadas</span>
+                        <span class="badge badge-danger">No generadas</span>
                     {% endif %}
-                </p>
-                <p style="font-size: 0.9rem;">
-                    <strong>Certificado X.509:</strong>
+                </div>
+                <div class="row gap-sm">
+                    <span class="muted" style="font-size:.9rem;">Certificado X.509</span>
                     {% if tiene_cert %}
                         {% if cert_expirado %}
-                            <span style="color: #c0392b; font-weight: bold;">Expirado</span>
+                            <span class="badge badge-danger">Expirado</span>
                         {% else %}
-                            <span style="color: #1e8449; font-weight: bold;">Activo</span>
+                            <span class="badge badge-ok">Vigente</span>
                         {% endif %}
                     {% else %}
-                        <span style="color: #c0392b; font-weight: bold;">No emitido</span>
+                        <span class="badge badge-danger">No emitido</span>
                     {% endif %}
-                </p>
+                </div>
             </div>
-            <div style="flex: 1;">
-                <h3 style="color: #1A1A1A; font-family: 'Montserrat', sans-serif; margin-bottom: 0.5rem; font-size: 1.1rem;">Permisos Efectivos</h3>
-                <ul style="font-size: 0.85rem; color: #555; list-style-type: none; padding: 0;">
+            <div>
+                <div class="eyebrow">Permisos efectivos</div>
+                <ul class="muted" style="font-size:.88rem; list-style:none; display:grid; gap:.25rem;">
                     {% for permiso in permisos_amigables %}
-                        <li>▫ {{ permiso }}</li>
+                        <li class="row gap-sm center">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>
+                            {{ permiso }}
+                        </li>
                     {% empty %}
                         <li>No hay permisos asignados explícitamente.</li>
                     {% endfor %}
@@ -272,79 +83,87 @@
         </div>
     </div>
 
-    <div class="cards-grid">
+    <div class="grid grid-tiles" style="margin-top:.25rem;">
 
         {% if 'puede_crear_expediente' in permisos_rol %}
-        <a href="{% url 'expediente:registrar' %}" class="card verde">
-            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></div>
-            <div class="card-title">Registrar migrante</div>
-            <div class="card-desc">Llenar el formulario de entrevista de ingreso.</div>
+        <a href="{% url 'expediente:registrar' %}" class="tile">
+            <div class="tile-top">
+                <div class="tile-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 9h1M9 13h6M9 17h6"/></svg></div>
+            </div>
+            <h3>Registrar migrante</h3>
+            <p>Llenar el formulario de entrevista de ingreso.</p>
         </a>
         {% endif %}
 
         {% if 'puede_ver_expediente' in permisos_rol and rol != 'Usuario' %}
-        <a href="{% url 'expediente:lista_expedientes' %}" class="card azul">
-            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
-            <div class="card-title">Ver expedientes</div>
-            <div class="card-desc">Consultar y editar expedientes existentes.</div>
+        <a href="{% url 'expediente:lista_expedientes' %}" class="tile">
+            <div class="tile-top">
+                <div class="tile-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+            </div>
+            <h3>Ver expedientes</h3>
+            <p>Consultar, verificar y editar expedientes existentes.</p>
         </a>
         {% endif %}
 
         {% if rol == 'Usuario' %}
-        <a href="{% url 'expediente:lista_expedientes' %}" class="card azul">
-            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
-            <div class="card-title">Mis expedientes</div>
-            <div class="card-desc">Consultar los expedientes que tú has registrado.</div>
+        <a href="{% url 'expediente:lista_expedientes' %}" class="tile">
+            <div class="tile-top">
+                <div class="tile-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div>
+            </div>
+            <h3>Mis expedientes</h3>
+            <p>Consultar los expedientes que tú has registrado.</p>
         </a>
         {% endif %}
 
         {% if 'puede_exportar_expediente' in permisos_rol %}
-        <a href="#" class="card naranja">
-            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></div>
-            <div class="card-title">Exportar expedientes</div>
-            <div class="card-desc">Descargar expedientes en formato seguro.</div>
+        <a href="#" class="tile is-secondary">
+            <div class="tile-top">
+                <div class="tile-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M12 16V4M7 9l5-5 5 5"/></svg></div>
+            </div>
+            <h3>Exportar expedientes</h3>
+            <p>Descargar expedientes en formato seguro.</p>
         </a>
         {% endif %}
 
         {% if 'puede_gestionar_usuarios' in permisos_rol %}
-        <a href="{% url 'usuarios:admin_panel' %}" class="card rojo">
-            <div class="card-header">
-                <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
-                {% if solicitudes_pendientes %}
-                <span class="notif-badge">{{ solicitudes_pendientes }}</span>
-                {% endif %}
+        <a href="{% url 'usuarios:admin_panel' %}" class="tile">
+            <div class="tile-top">
+                <div class="tile-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.2"/><path d="M22 19v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.5a4 4 0 0 1 0 7"/></svg></div>
+                {% if solicitudes_pendientes %}<span class="notif">{{ solicitudes_pendientes }}</span>{% endif %}
             </div>
-            <div class="card-title">Gestionar usuarios</div>
-            <div class="card-desc">Crear, editar y asignar roles a colaboradores.</div>
+            <h3>Gestionar usuarios</h3>
+            <p>Crear, editar y asignar roles a colaboradores.</p>
         </a>
         {% endif %}
 
         {% if rol == 'Operativo' or rol == 'Coordinador_Administracion' or rol == 'Coordinador_Acompanamiento' or rol == 'Administrador' %}
-        <a href="{% url 'expediente:lista_arco' %}" class="card naranja">
-            <div class="card-header">
-                <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M3 7h18"></path><path d="m3 7 4 9 4-9"></path><path d="m13 7 4 9 4-9"></path><line x1="9" y1="22" x2="15" y2="22"></line></svg></div>
-                {% if solicitudes_arco_pendientes %}
-                <span class="notif-badge">{{ solicitudes_arco_pendientes }}</span>
-                {% endif %}
+        <a href="{% url 'expediente:lista_arco' %}" class="tile is-secondary">
+            <div class="tile-top">
+                <div class="tile-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 7h10M5 21h14"/><path d="M7 7l-3 6a3 3 0 0 0 6 0z"/><path d="M17 7l3 6a3 3 0 0 1-6 0z"/></svg></div>
+                {% if solicitudes_arco_pendientes %}<span class="notif">{{ solicitudes_arco_pendientes }}</span>{% endif %}
             </div>
-            <div class="card-title">Solicitudes ARCO</div>
-            <div class="card-desc">Gestionar derechos de acceso, rectificación, cancelación y oposición.</div>
+            <h3>Solicitudes ARCO</h3>
+            <p>Gestionar derechos de acceso, rectificación, cancelación y oposición.</p>
         </a>
         {% endif %}
 
         {% if rol != 'Administrador' %}
-        <a href="{% url 'usuarios:solicitar_rol' %}" class="card morado">
-            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div>
-            <div class="card-title">Solicitar cambio de rol</div>
-            <div class="card-desc">Pide al administrador que cambie tu rol o permisos.</div>
+        <a href="{% url 'usuarios:solicitar_rol' %}" class="tile">
+            <div class="tile-top">
+                <div class="tile-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg></div>
+            </div>
+            <h3>Solicitar cambio de rol</h3>
+            <p>Pide al administrador que cambie tu rol o permisos.</p>
         </a>
         {% endif %}
 
         {% if 'puede_ver_bitacora' in permisos_rol %}
-        <a href="#" class="card naranja">
-            <div class="card-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
-            <div class="card-title">Bitácora de auditoría</div>
-            <div class="card-desc">Revisar el registro de eventos del sistema.</div>
+        <a href="#" class="tile is-secondary">
+            <div class="tile-top">
+                <div class="tile-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+            </div>
+            <h3>Bitácora de auditoría</h3>
+            <p>Revisar el registro de eventos del sistema.</p>
         </a>
         {% endif %}
 
@@ -356,15 +175,9 @@
         const panel = document.getElementById('status-panel');
         const button = document.getElementById('toggle-status');
         const arrow = document.getElementById('status-arrow');
-        
         panel.classList.toggle('show');
         button.classList.toggle('active');
-        
-        if (panel.classList.contains('show')) {
-            arrow.textContent = '▲';
-        } else {
-            arrow.textContent = '▼';
-        }
+        arrow.textContent = panel.classList.contains('show') ? '▾' : '▸';
     }
 </script>
 

@@ -2,120 +2,29 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aviso de Privacidad — Casa Monarca</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #F5F5F5;
-            min-height: 100vh;
-        }
-
-        /* Navbar */
-        .navbar {
-            background: #1A1A1A;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar-brand {
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .btn-outline {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-size: 0.875rem;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 0.3rem 0.75rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .btn-outline:hover {
-            background: white;
-            color: #1A1A1A;
-            border-color: white;
-        }
-
-        /* Contenido */
-        .container {
-            max-width: 800px;
-            margin: 2.5rem auto;
-            padding: 0 1.5rem;
-        }
-
-        .document {
-            background: white;
-            border-radius: 12px;
-            padding: 3rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            line-height: 1.6;
-            color: #333;
-        }
-
-        .document h1 {
-            color: #1A1A1A;
-            font-size: 1.8rem;
-            font-family: 'Montserrat', sans-serif;
-            margin-bottom: 2rem;
-            text-align: center;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #eee;
-        }
-
-        .document h2 {
-            color: #1A1A1A;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.2rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-        }
-
-        .document p {
-            margin-bottom: 1rem;
-            font-size: 0.95rem;
-            text-align: justify;
-        }
-
-        .document ul {
-            margin-left: 2rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
-        }
-
-        .document li {
-            margin-bottom: 0.5rem;
-        }
-    </style>
+    {% include "cm_base.html" %}
 </head>
 <body>
 
+<div class="cm-top-accent"></div>
 <nav class="navbar">
-    <div class="navbar-brand">
-        <img src="{% static 'img/logo_icon.png' %}" alt="Logo" style="height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 4px;">
-        <span style="font-family: 'Montserrat', sans-serif;">Casa Monarca</span>
-    </div>
-    <div>
-        <a href="{% url 'portal_migrante:dashboard' %}" class="btn-outline">Volver a mis datos</a>
+    <a href="{% url 'portal_migrante:dashboard' %}" class="brand">
+        <span class="cm-mark"></span>
+        <span class="wm">Casa Monarca<small>Ayuda Humanitaria al Migrante</small></span>
+    </a>
+    <div class="nav-right">
+        <a href="{% url 'portal_migrante:dashboard' %}" class="btn btn-ghost btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+            Volver a mis datos
+        </a>
     </div>
 </nav>
 
-<div class="container">
-    <div class="document">
+<div class="page page-narrow">
+    <div class="section prose" style="padding:clamp(1.5rem,4vw,3rem);">
         <h1>Aviso de Privacidad Integral</h1>
-        
+
         <p>Casa Monarca, Ayuda Humanitaria al Migrante, A.B.P., con domicilio en Monterrey, Nuevo León, es el responsable del uso y protección de sus datos personales, y al respecto le informamos lo siguiente:</p>
 
         <h2>¿Para qué fines utilizaremos sus datos personales?</h2>
@@ -128,7 +37,7 @@
 
         <h2>¿Qué datos personales utilizaremos para estos fines?</h2>
         <p>Para llevar a cabo las finalidades descritas en el presente aviso de privacidad, utilizaremos los siguientes datos personales: nombre completo, fecha de nacimiento, nacionalidad, datos de contacto (teléfono), información sobre su tránsito migratorio y datos sobre su estado de salud físico o emocional (datos sensibles).</p>
-        
+
         <p><strong>Protección criptográfica:</strong> Le informamos que toda su información es almacenada bajo los más altos estándares de seguridad y cifrado de grado militar (AES-256). Nadie en la institución puede leer sus datos completos sin una razón justificada y autorización del sistema.</p>
 
         <h2>¿Cómo puede acceder, rectificar o cancelar sus datos personales, u oponerse a su uso? (Derechos ARCO)</h2>
@@ -137,8 +46,8 @@
 
         <h2>Cambios en el aviso de privacidad</h2>
         <p>El presente aviso de privacidad puede sufrir modificaciones, cambios o actualizaciones derivadas de nuevos requerimientos legales; de nuestras propias necesidades por los servicios que ofrecemos; de nuestras prácticas de privacidad; de cambios en nuestro modelo de atención, o por otras causas. Nos comprometemos a mantenerlo informado sobre los cambios que pueda sufrir el presente aviso de privacidad, a través de este portal.</p>
-        
-        <p style="text-align: center; margin-top: 3rem; color: #888; font-size: 0.85rem;">Última actualización: Mayo 2026</p>
+
+        <p style="text-align:center; margin-top:3rem; color:var(--ink-faint); font-size:.85rem;">Última actualización: Mayo 2026</p>
     </div>
 </div>
 

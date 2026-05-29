@@ -1,301 +1,77 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Datos — Casa Monarca</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #F5F5F5;
-            min-height: 100vh;
-        }
-
-        /* Navbar */
-        .navbar {
-            background: #1A1A1A;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar-brand {
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .navbar-user {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .navbar-user span {
-            color: #aed6f1;
-            font-size: 0.875rem;
-        }
-        
-        .badge {
-            background: #2e86c1;
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .btn-outline {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-size: 0.875rem;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 0.3rem 0.75rem;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-
-        .btn-outline:hover {
-            background: white;
-            color: #1A1A1A;
-            border-color: white;
-        }
-
-        /* Contenido */
-        .container {
-            max-width: 900px;
-            margin: 2.5rem auto;
-            padding: 0 1.5rem;
-        }
-
-        .welcome {
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .welcome h2 {
-            color: #1A1A1A;
-            font-size: 1.5rem;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .welcome p {
-            color: #666;
-            margin-top: 0.3rem;
-            font-size: 0.95rem;
-        }
-        
-        .actions-bar {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .btn-primary {
-            background: #D42145;
-            color: white;
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: background 0.2s;
-        }
-        
-        .btn-primary:hover { background: #B01A3A; }
-        
-        .btn-secondary {
-            background: white;
-            color: #1a5276;
-            border: 1px solid #d5dbdb;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: all 0.2s;
-        }
-        
-        .btn-secondary:hover {
-            background: #f8f9fa;
-            border-color: #1a5276;
-        }
-
-        /* Secciones de datos */
-        .data-section {
-            background: white;
-            border-radius: 12px;
-            padding: 1.75rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-left: 4px solid #E07030;
-        }
-        
-        .data-section h3 {
-            color: #1A1A1A;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-        
-        .data-item {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .data-label {
-            font-size: 0.8rem;
-            color: #888;
-            font-weight: 600;
-            margin-bottom: 0.2rem;
-            text-transform: uppercase;
-        }
-        
-        .data-value {
-            font-size: 1rem;
-            color: #333;
-        }
-        
-        .empty-value {
-            color: #bbb;
-            font-style: italic;
-        }
-        
-        /* Notificaciones */
-        .notification-card {
-            background: #FFF8F5;
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid #E07030;
-        }
-        
-        .notification-content p {
-            color: #1a5276;
-            font-size: 0.95rem;
-        }
-        
-        .notification-content span {
-            color: #666;
-            font-size: 0.85rem;
-            display: block;
-            margin-top: 0.2rem;
-        }
-
-    </style>
+    {% include "cm_base.html" %}
 </head>
 <body>
 
+<div class="cm-top-accent"></div>
 <nav class="navbar">
-    <div class="navbar-brand">
-        <img src="{% static 'img/logo_icon.png' %}" alt="Logo" style="height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 4px;">
-        <span style="font-family: 'Montserrat', sans-serif;">Casa Monarca</span>
-    </div>
-    <div class="navbar-user">
-        <span>Expediente #{{ exp_id }}</span>
-        <span class="badge">Migrante</span>
-        <a href="{% url 'portal_migrante:salir' %}" class="btn-outline">Cerrar sesion</a>
+    <a href="{% url 'portal_migrante:dashboard' %}" class="brand">
+        <span class="cm-mark"></span>
+        <span class="wm">Casa Monarca<small>Ayuda Humanitaria al Migrante</small></span>
+    </a>
+    <div class="nav-right">
+        <span class="badge badge-soft">Expediente #{{ exp_id }}</span>
+        <a href="{% url 'portal_migrante:salir' %}" class="btn btn-ghost btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+            Salir
+        </a>
     </div>
 </nav>
 
-<div class="container">
-    <div class="welcome">
-        <div>
-            <h2>Bienvenido, {{ datos.nombre_pila }}</h2>
-            <p>Aqui puedes consultar la informacion personal que tenemos registrada.</p>
+<div class="page page-narrow">
+    <div class="page-head">
+        <h1>Hola, {{ datos.nombre_pila }}</h1>
+        <div class="sub">Esta es la información personal que Casa Monarca tiene registrada sobre ti.</div>
+    </div>
+
+    <div class="card card-pad mb" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; background:var(--primary-050); border-color:var(--primary-050);">
+        <div style="width:42px; height:42px; border-radius:11px; background:#fff; color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 7h10M5 21h14"/><path d="M7 7l-3 6a3 3 0 0 0 6 0z"/><path d="M17 7l3 6a3 3 0 0 1-6 0z"/></svg>
         </div>
-        <div class="actions-bar">
-            <a href="{% url 'portal_migrante:privacidad' %}" class="btn-secondary">Aviso de Privacidad</a>
-            <a href="{% url 'portal_migrante:solicitar_arco' %}" class="btn-primary">Ejercer Derechos ARCO</a>
+        <div style="flex:1; min-width:200px;">
+            <div style="font-weight:700; color:var(--primary-700);">Tus derechos sobre tus datos</div>
+            <div class="muted" style="font-size:.88rem;">Puedes pedir corregir, restringir o eliminar tu información cuando quieras.</div>
+        </div>
+        <div class="row gap-sm wrap">
+            <a href="{% url 'portal_migrante:privacidad' %}" class="btn btn-secondary">Aviso de privacidad</a>
+            <a href="{% url 'portal_migrante:solicitar_arco' %}" class="btn btn-primary">Ejercer mis derechos</a>
         </div>
     </div>
-    
+
     {% if solicitudes %}
-    <div class="notification-card">
-        <div class="notification-content">
-            <p><strong>Tienes solicitudes en tramite</strong></p>
-            <span>Has enviado {{ solicitudes.count }} solicitud(es) de derechos ARCO.</span>
+    <div class="card card-pad mb" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <div style="flex:1; min-width:180px;">
+            <strong>Tienes solicitudes en trámite</strong>
+            <div class="muted" style="font-size:.88rem;">Has enviado {{ solicitudes.count }} solicitud(es) de derechos ARCO. Revisa su avance.</div>
         </div>
-        <a href="{% url 'portal_migrante:mis_solicitudes' %}" class="btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">Ver estado</a>
+        <a href="{% url 'portal_migrante:mis_solicitudes' %}" class="btn btn-secondary btn-sm">Ver estado</a>
     </div>
     {% endif %}
 
-    <div class="data-section">
-        <h3>Datos Personales</h3>
+    <div class="section">
+        <div class="section-title"><span class="row center gap-sm"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></span>Datos personales</span></div>
         <div class="data-grid">
-            <div class="data-item">
-                <span class="data-label">Nombre(s)</span>
-                <span class="data-value">{{ datos.nombre_pila|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Primer Apellido</span>
-                <span class="data-value">{{ datos.primer_apellido|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Segundo Apellido</span>
-                <span class="data-value">{{ datos.segundo_apellido|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Fecha de Nacimiento</span>
-                <span class="data-value">{{ datos.fecha_nacimiento|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Edad</span>
-                <span class="data-value">{{ datos.edad|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Genero</span>
-                <span class="data-value">{{ datos.genero|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Nacionalidad</span>
-                <span class="data-value">{{ datos.pais_origen|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Estado Civil</span>
-                <span class="data-value">{{ datos.estado_civil|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
+            <div class="data-item"><div class="k">Nombre(s)</div><div class="v">{{ datos.nombre_pila|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Primer apellido</div><div class="v">{{ datos.primer_apellido|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Segundo apellido</div><div class="v">{{ datos.segundo_apellido|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Fecha de nacimiento</div><div class="v">{{ datos.fecha_nacimiento|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Edad</div><div class="v">{{ datos.edad|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Género</div><div class="v">{{ datos.genero|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Nacionalidad</div><div class="v">{{ datos.pais_origen|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Estado civil</div><div class="v">{{ datos.estado_civil|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
         </div>
     </div>
 
-    <div class="data-section">
-        <h3>Contacto y Ubicacion</h3>
+    <div class="section">
+        <div class="section-title"><span class="row center gap-sm"><span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></span>Contacto y ubicación</span></div>
         <div class="data-grid">
-            <div class="data-item">
-                <span class="data-label">Telefono</span>
-                <span class="data-value">{{ datos.telefono|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Departamento / Estado</span>
-                <span class="data-value">{{ datos.departamento|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
-            <div class="data-item">
-                <span class="data-label">Grupo de Poblacion</span>
-                <span class="data-value">{{ datos.grupo_poblacion|default:"<span class='empty-value'>No registrado</span>"|safe }}</span>
-            </div>
+            <div class="data-item"><div class="k">Teléfono</div><div class="v">{{ datos.telefono|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Departamento / Estado</div><div class="v">{{ datos.departamento|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+            <div class="data-item"><div class="k">Grupo de población</div><div class="v">{{ datos.grupo_poblacion|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
         </div>
     </div>
 </div>

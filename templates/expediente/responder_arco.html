@@ -2,105 +2,57 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Evaluar Solicitud ARCO — Casa Monarca</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: #F5F5F5; min-height: 100vh; }
-        .navbar { background: #1A1A1A; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; font-family: 'Montserrat', sans-serif; }
-        .btn-back { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; border: 1px solid rgba(255,255,255,0.3); padding: 0.3rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
-        .btn-back:hover { background: white; color: #1A1A1A; border-color: white; }
-
-        .container { max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; }
-
-        .card { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 1.5rem; border-left: 4px solid #3A7CA5; }
-        
-        .header h2 { color: #1A1A1A; font-family: 'Montserrat', sans-serif; margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
-        
-        .info-row { margin-bottom: 1rem; }
-        .info-label { font-weight: 600; color: #555; font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 0.2rem; }
-        .info-value { color: #333; font-size: 1rem; background: #f8f9fa; padding: 0.8rem; border-radius: 6px; border: 1px solid #eee; }
-        
-        .badge { padding: 0.3rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
-        .badge-rectificacion { background: #eaf2f8; color: #2980b9; }
-        .badge-cancelacion { background: #fdecea; color: #c0392b; }
-        .badge-oposicion { background: #fef5e7; color: #d35400; }
-
-        .form-group { margin-bottom: 1.5rem; margin-top: 1.5rem; }
-        label { display: block; font-size: 0.95rem; font-weight: 600; color: #333; margin-bottom: 0.5rem; }
-        textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; font-family: inherit; resize: vertical; min-height: 100px; }
-        textarea:focus { outline: none; border-color: #D42145; }
-
-        .actions { display: flex; gap: 1rem; margin-top: 2rem; }
-        .btn { padding: 0.8rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; border: none; flex: 1; color: white; }
-        .btn-approve { background: #27ae60; }
-        .btn-approve:hover { background: #219653; }
-        .btn-reject { background: #e74c3c; }
-        .btn-reject:hover { background: #c0392b; }
-        
-        .alert-error { background: #fdecea; color: #c0392b; border-left: 4px solid #c0392b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-        .alert-info { background: #eaf2f8; color: #2980b9; border-left: 4px solid #2980b9; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-
-        .field-table { width: 100%; border-collapse: collapse; background: #f8f9fa; border-radius: 6px; overflow: hidden; border: 1px solid #eee; }
-        .field-table th, .field-table td { padding: 0.6rem 1rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        .field-table th { background: #F5F5F5; color: #1A1A1A; font-weight: 600; width: 35%; }
-        .field-table tr:last-child td { border-bottom: none; }
-
-        .rectif-form input[type="text"],
-        .rectif-form input[type="date"],
-        .rectif-form select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; background: white; }
-        .rectif-form .form-row { display: grid; grid-template-columns: 35% 1fr; gap: 0.75rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f0f0f0; }
-        .rectif-form .form-row:last-child { border-bottom: none; }
-        .rectif-form label { font-weight: 600; color: #555; font-size: 0.85rem; margin: 0; }
-        .rectif-form .errorlist { list-style: none; color: #c0392b; font-size: 0.8rem; margin-top: 0.2rem; }
-    </style>
+    {% include "cm_base.html" %}
 </head>
 <body>
 
+<div class="cm-top-accent"></div>
 <nav class="navbar">
-    <div class="navbar-brand">
-        <img src="{% static 'img/logo_icon.png' %}" alt="Logo" style="height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 4px;">
-        <span style="font-family: 'Montserrat', sans-serif;">Casa Monarca</span>
+    <a href="{% url 'expediente:dashboard' %}" class="brand">
+        <span class="cm-mark"></span>
+        <span class="wm">Casa Monarca<small>Ayuda Humanitaria al Migrante</small></span>
+    </a>
+    <div class="nav-right">
+        <a href="{% url 'expediente:lista_arco' %}" class="btn btn-ghost btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+            Volver a la lista
+        </a>
     </div>
-    <a href="{% url 'expediente:lista_arco' %}" class="btn-back">← Volver a lista</a>
 </nav>
 
-<div class="container">
+<div class="page page-narrow">
     {% if messages %}
         {% for message in messages %}
-            <div class="alert-error">{{ message }}</div>
+            <div class="alert error">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
-    <div class="card">
-        <div class="header">
-            <h2>Evaluar Solicitud ARCO #{{ solicitud.pk }}</h2>
-        </div>
-        
-        <div class="info-row">
-            <span class="info-label">Tipo de Solicitud</span>
-            <div style="margin-top: 0.5rem;"><span class="badge badge-{{ solicitud.tipo }}">{{ solicitud.get_tipo_display }}</span></div>
+    <div class="page-head">
+        <div class="eyebrow">Evaluación</div>
+        <h1>Solicitud ARCO #{{ solicitud.pk }}</h1>
+    </div>
+
+    <div class="section">
+        <div class="field">
+            <div class="label">Tipo de solicitud</div>
+            <span class="badge badge-{{ solicitud.tipo }}">{{ solicitud.get_tipo_display }}</span>
         </div>
 
-        <div class="info-row" style="margin-top: 1.5rem;">
-            <span class="info-label">Expediente Asociado</span>
-            <a href="{% url 'expediente:editar_expediente' solicitud.expediente_id %}" style="color: #2980b9; font-weight: 600; text-decoration: none;">Abrir Expediente #{{ solicitud.expediente_id }} ↗</a>
+        <div class="field">
+            <div class="label">Expediente asociado</div>
+            <a href="{% url 'expediente:editar_expediente' solicitud.expediente_id %}" style="color:var(--secondary-700); font-weight:600; text-decoration:none;">Abrir Expediente #{{ solicitud.expediente_id }} ↗</a>
         </div>
 
-        <div class="info-row" style="margin-top: 1.5rem;">
-            <span class="info-label">Descripcion del Migrante</span>
-            <div class="info-value" style="white-space: pre-wrap;">{{ solicitud.descripcion_cifrada }}</div>
+        <div class="field">
+            <div class="label">Descripción del migrante</div>
+            <div class="info-value">{{ solicitud.descripcion_cifrada }}</div>
         </div>
 
         {% if campos_dict %}
-        <div class="info-row">
-            <span class="info-label">Detalles Propuestos por el Migrante</span>
-            <table class="field-table">
+        <div class="field">
+            <div class="label">Detalles propuestos por el migrante</div>
+            <table class="kv-table">
                 <tbody>
                 {% for k, v in campos_dict.items %}
                     <tr>
@@ -113,16 +65,14 @@
         </div>
         {% endif %}
 
-        <form method="POST" style="border-top: 2px dashed #eee; margin-top: 2rem; padding-top: 1rem;">
+        <form method="POST" style="border-top:2px dashed var(--line); margin-top:1.5rem; padding-top:1.25rem;">
             {% csrf_token %}
 
             {% if solicitud.tipo == 'rectificacion' %}
-                <div class="alert-info">
-                    <strong>Rectificacion:</strong> Modifica directamente los campos que requieren ajuste segun la solicitud del migrante. Al aprobar, los cambios se enviaran al Coordinador para firma criptografica y aplicacion automatica.
-                </div>
-                <div class="rectif-form">
+                <div class="alert info"><div><strong>Rectificación:</strong> Modifica directamente los campos que requieren ajuste según la solicitud del migrante. Al aprobar, los cambios se enviarán al Coordinador para firma criptográfica y aplicación automática.</div></div>
+                <div>
                     {% for field in form %}
-                    <div class="form-row">
+                    <div class="rectif-row">
                         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         <div>
                             {{ field }}
@@ -132,28 +82,24 @@
                     {% endfor %}
                 </div>
             {% elif solicitud.tipo == 'oposicion' %}
-                <div class="alert-info">
-                    <strong>Oposicion:</strong> Escribe la etiqueta de restriccion que quedara asociada al expediente. Los coordinadores la veran al consultar el expediente.
-                </div>
-                <div class="form-group">
-                    <label for="etiqueta_oposicion">Etiqueta de Oposicion</label>
-                    <textarea id="etiqueta_oposicion" name="etiqueta_oposicion" required placeholder="Ej: El migrante no autoriza el uso de sus datos con fines estadisticos publicos."></textarea>
+                <div class="alert info"><div><strong>Oposición:</strong> Escribe la etiqueta de restricción que quedará asociada al expediente. Los coordinadores la verán al consultar el expediente.</div></div>
+                <div class="field">
+                    <label for="etiqueta_oposicion">Etiqueta de oposición</label>
+                    <textarea id="etiqueta_oposicion" name="etiqueta_oposicion" required placeholder="Ej. El migrante no autoriza el uso de sus datos con fines estadísticos públicos."></textarea>
                 </div>
             {% else %}
-                <div class="alert-info">
-                    <strong>Cancelacion:</strong> Tu pre-aprobacion enviara la solicitud al Coordinador. La cancelacion final solo la ejecuta un Administrador tras la firma de Coordinacion.
-                </div>
+                <div class="alert info"><div><strong>Cancelación:</strong> Tu pre-aprobación enviará la solicitud al Coordinador. La cancelación final solo la ejecuta un administrador tras la firma de Coordinación.</div></div>
             {% endif %}
 
-            <div class="form-group">
-                <label for="respuesta_operativo">Comentario Operativo (Justificacion de aprobacion o rechazo)</label>
-                <textarea id="respuesta_operativo" name="respuesta_operativo" required placeholder="Escribe aqui tu evaluacion..."></textarea>
+            <div class="field">
+                <label for="respuesta_operativo">Comentario operativo (justificación de aprobación o rechazo)</label>
+                <textarea id="respuesta_operativo" name="respuesta_operativo" required placeholder="Escribe aquí tu evaluación..."></textarea>
             </div>
 
-            <div class="actions">
-                <button type="submit" name="accion" value="rechazar" class="btn btn-reject" onclick="return confirm('¿Rechazar esta solicitud? El migrante vera el comentario.');">Rechazar Solicitud</button>
-                <button type="submit" name="accion" value="aprobar" class="btn btn-approve">
-                    {% if solicitud.tipo == 'cancelacion' %}Pre-Aprobar y Enviar a Coordinador{% else %}Aprobar y Enviar a Coordinador{% endif %}
+            <div class="row gap" style="margin-top:.5rem;">
+                <button type="submit" name="accion" value="rechazar" class="btn btn-danger" style="flex:1;" onclick="return confirm('¿Rechazar esta solicitud? El migrante verá el comentario.');">Rechazar solicitud</button>
+                <button type="submit" name="accion" value="aprobar" class="btn btn-success" style="flex:1;">
+                    {% if solicitud.tipo == 'cancelacion' %}Pre-aprobar y enviar a Coordinador{% else %}Aprobar y enviar a Coordinador{% endif %}
                 </button>
             </div>
         </form>
