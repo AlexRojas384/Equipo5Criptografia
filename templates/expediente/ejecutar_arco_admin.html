@@ -1,20 +1,24 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ejecutar Cancelacion ARCO — Casa Monarca</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
-        .navbar { background: #1a5276; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; }
-        .btn-back { color: #aed6f1; text-decoration: none; font-size: 0.875rem; border: 1px solid #aed6f1; padding: 0.3rem 0.75rem; border-radius: 6px; }
-        .btn-back:hover { background: white; color: #1a5276; }
+        body { font-family: 'Inter', sans-serif; background: #F5F5F5; min-height: 100vh; }
+        .navbar { background: #1A1A1A; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; font-family: 'Montserrat', sans-serif; }
+        .btn-back { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; border: 1px solid rgba(255,255,255,0.3); padding: 0.3rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
+        .btn-back:hover { background: white; color: #1A1A1A; border-color: white; }
 
         .container { max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; }
-        .card { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
-        .header h2 { color: #c0392b; margin-bottom: 1rem; border-bottom: 2px solid #fadbd8; padding-bottom: 0.5rem; }
+        .card { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 1.5rem; border-left: 4px solid #D42145; }
+        .header h2 { color: #D42145; font-family: 'Montserrat', sans-serif; margin-bottom: 1rem; border-bottom: 2px solid #fadbd8; padding-bottom: 0.5rem; }
 
         .info-row { margin-bottom: 1rem; }
         .info-label { font-weight: 600; color: #555; font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 0.2rem; }
@@ -23,7 +27,7 @@
         .form-group { margin-bottom: 1.5rem; margin-top: 1.5rem; }
         label { display: block; font-size: 0.95rem; font-weight: 600; color: #333; margin-bottom: 0.5rem; }
         textarea { width: 100%; padding: 0.75rem 1rem; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; font-family: inherit; resize: vertical; min-height: 100px; }
-        textarea:focus { outline: none; border-color: #c0392b; }
+        textarea:focus { outline: none; border-color: #D42145; }
 
         .actions { display: flex; gap: 1rem; margin-top: 2rem; }
         .btn { padding: 0.8rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; border: none; flex: 1; color: white; }
@@ -32,8 +36,8 @@
         .btn-reject { background: #7f8c8d; }
         .btn-reject:hover { background: #616a6b; }
 
-        .alert-danger { background: #fdecea; color: #c0392b; border-left: 4px solid #c0392b; padding: 1.25rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-        .timeline { background: #f8f9fa; border-radius: 8px; padding: 1rem 1.25rem; border-left: 4px solid #2980b9; margin: 1rem 0; }
+        .alert-danger { background: #fdecea; color: #D42145; border-left: 4px solid #D42145; padding: 1.25rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+        .timeline { background: #f8f9fa; border-radius: 8px; padding: 1rem 1.25rem; border-left: 4px solid #E07030; margin: 1rem 0; }
         .timeline-step { padding: 0.4rem 0; border-bottom: 1px dashed #ddd; font-size: 0.9rem; }
         .timeline-step:last-child { border-bottom: none; }
         .timeline-step strong { color: #1a5276; }
@@ -42,7 +46,10 @@
 <body>
 
 <nav class="navbar">
-    <div class="navbar-brand">🦋 Casa Monarca</div>
+    <div class="navbar-brand">
+        <img src="{% static 'img/logo_icon.png' %}" alt="Logo" style="height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 4px;">
+        <span style="font-family: 'Montserrat', sans-serif;">Casa Monarca</span>
+    </div>
     <a href="{% url 'expediente:lista_arco' %}" class="btn-back">← Volver a lista</a>
 </nav>
 

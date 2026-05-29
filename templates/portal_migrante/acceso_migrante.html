@@ -1,15 +1,19 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Migrante — Casa Monarca</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f4f8;
+            font-family: 'Inter', sans-serif;
+            background: #F5F5F5;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,6 +27,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 400px;
+            border-top: 4px solid #D42145;
         }
 
         .logo {
@@ -31,14 +36,15 @@
         }
 
         .logo h1 {
-            color: #1a5276;
+            color: #1A1A1A;
+            font-family: 'Montserrat', sans-serif;
             font-size: 1.4rem;
             font-weight: 700;
         }
 
         .logo p {
-            color: #666;
-            font-size: 0.85rem;
+            color: #9B9B9B;
+            font-size: 0.95rem;
             margin-top: 0.3rem;
         }
 
@@ -71,7 +77,7 @@
 
         input:focus {
             outline: none;
-            border-color: #1a5276;
+            border-color: #D42145;
         }
         
         .help-text {
@@ -83,19 +89,19 @@
 
         .btn-login {
             width: 100%;
-            padding: 0.85rem;
-            background: #1a5276;
+            padding: 1rem;
+            background: #D42145;
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 600;
             cursor: pointer;
             margin-top: 0.5rem;
             transition: background 0.2s;
         }
 
-        .btn-login:hover { background: #154360; }
+        .btn-login:hover { background: #B01A3A; }
 
         .messages { margin-bottom: 1rem; }
 
@@ -128,7 +134,7 @@
 <body>
 <div class="login-container">
     <div class="logo">
-        <h1>Casa Monarca</h1>
+        <img src="{% static 'img/logo_full.png' %}" alt="Casa Monarca" style="max-width: 180px; margin-bottom: 0.5rem;">
         <p>Portal de Consulta para Migrantes</p>
     </div>
     <hr class="divider">

@@ -1,34 +1,38 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Usuarios — Casa Monarca</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f4f8;
+            font-family: 'Inter', sans-serif;
+            background: #F5F5F5;
             min-height: 100vh;
             color: #333;
         }
 
         /* Navbar */
         .navbar {
-            background: #1a5276;
+            background: #1A1A1A;
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; }
+        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; font-family: 'Montserrat', sans-serif; }
         .btn-back {
-            color: #aed6f1; text-decoration: none; font-size: 0.875rem;
-            border: 1px solid #aed6f1; padding: 0.3rem 0.75rem; border-radius: 6px;
+            color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem;
+            border: 1px solid rgba(255,255,255,0.3); padding: 0.3rem 0.75rem; border-radius: 6px;
             transition: all 0.2s;
         }
-        .btn-back:hover { background: white; color: #1a5276; }
+        .btn-back:hover { background: white; color: #1A1A1A; border-color: white; }
 
         /* Container */
         .container {
@@ -41,8 +45,9 @@
             margin-bottom: 2rem;
         }
         .page-header h2 {
-            color: #1a5276;
+            color: #1A1A1A;
             font-size: 1.5rem;
+            font-family: 'Montserrat', sans-serif;
         }
         .page-header p {
             color: #666;
@@ -87,10 +92,10 @@
             margin-bottom: -2px;
             transition: color 0.2s, border-color 0.2s;
         }
-        .tab-btn:hover { color: #1a5276; }
+        .tab-btn:hover { color: #1A1A1A; }
         .tab-btn.active {
-            color: #1a5276;
-            border-bottom-color: #1a5276;
+            color: #1A1A1A;
+            border-bottom-color: #1A1A1A;
         }
         .tab-badge {
             background: #c0392b;
@@ -115,7 +120,8 @@
         .section-title {
             font-size: 1.05rem;
             font-weight: 700;
-            color: #1a5276;
+            color: #1A1A1A;
+            font-family: 'Montserrat', sans-serif;
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
@@ -194,7 +200,7 @@
         }
         .select-sm:focus {
             outline: none;
-            border-color: #1a5276;
+            border-color: #D42145;
         }
 
         /* Botones */
@@ -211,17 +217,17 @@
             transition: all 0.2s;
             text-decoration: none;
         }
-        .btn-primary   { background: #1a5276; color: white; }
-        .btn-primary:hover { background: #154360; }
-        .btn-success   { background: #1e8449; color: white; }
-        .btn-success:hover { background: #196f3d; }
-        .btn-danger    { background: #c0392b; color: white; }
-        .btn-danger:hover  { background: #a93226; }
+        .btn-primary   { background: #1A1A1A; color: white; }
+        .btn-primary:hover { background: #4A4A4A; }
+        .btn-success   { background: #2D8B57; color: white; }
+        .btn-success:hover { background: #1e6b41; }
+        .btn-danger    { background: #D42145; color: white; }
+        .btn-danger:hover  { background: #B01A3A; }
         .btn-outline   {
-            background: transparent; color: #1a5276;
-            border: 1px solid #1a5276;
+            background: transparent; color: #1A1A1A;
+            border: 1px solid #1A1A1A;
         }
-        .btn-outline:hover { background: #1a5276; color: white; }
+        .btn-outline:hover { background: #1A1A1A; color: white; }
         .btn-sm {
             padding: 0.2rem 0.4rem;
             font-size: 0.75rem;
@@ -312,7 +318,7 @@
         }
         .solicitud-user {
             font-weight: 700;
-            color: #1a5276;
+            color: #1A1A1A;
         }
         .solicitud-date {
             font-size: 0.78rem;
@@ -351,7 +357,7 @@
         }
         .solicitud-actions textarea:focus {
             outline: none;
-            border-color: #1a5276;
+            border-color: #D42145;
         }
 
         /* Bitácora */
@@ -424,7 +430,7 @@
             user-select: none;
         }
         .create-user-card .section-title:hover {
-            color: #154360;
+            color: #4A4A4A;
         }
         .create-form {
             display: none;
@@ -461,7 +467,7 @@
         .create-form input:focus,
         .create-form select:focus {
             outline: none;
-            border-color: #1a5276;
+            border-color: #D42145;
         }
         .create-form .help-text {
             font-size: 0.75rem;
@@ -522,7 +528,7 @@
         .sec-action-btn {
             background: none;
             border: none;
-            color: #1a5276;
+            color: #1A1A1A;
             cursor: pointer;
             font-size: 1rem;
             padding: 2px 5px;
@@ -545,7 +551,10 @@
 <body>
 
 <nav class="navbar">
-    <div class="navbar-brand">🦋 Casa Monarca</div>
+    <div class="navbar-brand">
+        <img src="{% static 'img/logo_icon.png' %}" alt="Logo" style="height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 4px;">
+        <span style="font-family: 'Montserrat', sans-serif;">Casa Monarca</span>
+    </div>
     <a href="{% url 'expediente:dashboard' %}" class="btn-back">← Volver al dashboard</a>
 </nav>
 

@@ -96,3 +96,8 @@ LOGIN_REDIRECT_URL = '/expediente/'
 LOGOUT_REDIRECT_URL = '/usuarios/login/'
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
+
+# Archivos estáticos personalizados (como el logo)
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]

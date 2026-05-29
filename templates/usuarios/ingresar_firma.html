@@ -1,14 +1,18 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ingresar Firma Electrónica — Casa Monarca</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f4f8;
+            font-family: 'Inter', sans-serif;
+            background: #F5F5F5;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -22,19 +26,20 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.08);
             width: 100%;
             max-width: 480px;
-            border-top: 5px solid #1a5276;
+            border-top: 5px solid #D42145;
         }
         .header {
             text-align: center;
             margin-bottom: 2rem;
         }
         .header h1 {
-            color: #1a5276;
+            color: #1A1A1A;
+            font-family: 'Montserrat', sans-serif;
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
         .header p {
-            color: #666;
+            color: #9B9B9B;
             font-size: 0.95rem;
             line-height: 1.5;
         }
@@ -59,13 +64,13 @@
         }
         .form-control:focus {
             outline: none;
-            border-color: #1a5276;
-            box-shadow: 0 0 0 3px rgba(26, 82, 118, 0.1);
+            border-color: #D42145;
+            box-shadow: 0 0 0 3px rgba(212, 33, 69, 0.1);
         }
         .btn {
             width: 100%;
             padding: 0.85rem;
-            background: #1a5276;
+            background: #D42145;
             color: white;
             border: none;
             border-radius: 6px;
@@ -75,17 +80,17 @@
             transition: background 0.2s;
             margin-top: 1rem;
         }
-        .btn:hover { background: #154360; }
+        .btn:hover { background: #B01A3A; }
         .btn-cancel {
             background: transparent;
-            color: #1a5276;
-            border: 1px solid #1a5276;
+            color: #4A4A4A;
+            border: 1px solid #E8E8E8;
             margin-top: 0.5rem;
             text-decoration: none;
             display: inline-block;
             text-align: center;
         }
-        .btn-cancel:hover { background: #eaf2f8; }
+        .btn-cancel:hover { background: #F5F5F5; }
         
         .alert {
             padding: 0.75rem 1rem;
@@ -110,8 +115,8 @@
             transition: all 0.2s;
         }
         .file-upload-wrapper:hover {
-            border-color: #1a5276;
-            background: #f0f4f8;
+            border-color: #D42145;
+            background: #fff;
         }
         .file-upload-wrapper input[type="file"] {
             position: absolute;
@@ -131,7 +136,8 @@
 
 <div class="login-card">
     <div class="header">
-        <h1>Verificación de llave de firma</h1>
+        <img src="{% static 'img/logo_full.png' %}" alt="Casa Monarca" style="max-width: 160px; margin: 0 auto 1rem auto; display: block;">
+        <h1>Verificación de llave</h1>
         <p>Operación crítica. Ingresa el archivo de llave (.key) y la contraseña correspondiente para continuar.</p>
     </div>
 

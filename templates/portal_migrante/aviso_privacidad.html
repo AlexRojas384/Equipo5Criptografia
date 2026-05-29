@@ -1,21 +1,25 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aviso de Privacidad — Casa Monarca</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f4f8;
+            font-family: 'Inter', sans-serif;
+            background: #F5F5F5;
             min-height: 100vh;
         }
 
         /* Navbar */
         .navbar {
-            background: #1a5276;
+            background: #1A1A1A;
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
@@ -26,13 +30,14 @@
             color: white;
             font-size: 1.1rem;
             font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
         }
 
         .btn-outline {
-            color: #aed6f1;
+            color: rgba(255,255,255,0.7);
             text-decoration: none;
             font-size: 0.875rem;
-            border: 1px solid #aed6f1;
+            border: 1px solid rgba(255,255,255,0.3);
             padding: 0.3rem 0.75rem;
             border-radius: 6px;
             transition: all 0.2s;
@@ -40,7 +45,8 @@
 
         .btn-outline:hover {
             background: white;
-            color: #1a5276;
+            color: #1A1A1A;
+            border-color: white;
         }
 
         /* Contenido */
@@ -60,8 +66,9 @@
         }
 
         .document h1 {
-            color: #1a5276;
+            color: #1A1A1A;
             font-size: 1.8rem;
+            font-family: 'Montserrat', sans-serif;
             margin-bottom: 2rem;
             text-align: center;
             padding-bottom: 1rem;
@@ -69,7 +76,8 @@
         }
 
         .document h2 {
-            color: #2980b9;
+            color: #1A1A1A;
+            font-family: 'Montserrat', sans-serif;
             font-size: 1.2rem;
             margin-top: 2rem;
             margin-bottom: 1rem;
@@ -95,7 +103,10 @@
 <body>
 
 <nav class="navbar">
-    <div class="navbar-brand">Casa Monarca</div>
+    <div class="navbar-brand">
+        <img src="{% static 'img/logo_icon.png' %}" alt="Logo" style="height: 28px; vertical-align: middle; margin-right: 8px; border-radius: 4px;">
+        <span style="font-family: 'Montserrat', sans-serif;">Casa Monarca</span>
+    </div>
     <div>
         <a href="{% url 'portal_migrante:dashboard' %}" class="btn-outline">Volver a mis datos</a>
     </div>
