@@ -156,6 +156,9 @@ def registrar_migrante(request):
 
     if request.method == 'POST':
         form = EntrevistaForm(request.POST)
+        if not request.POST.get('aviso_privacidad'):
+            form.add_error(None, "Debe mostrar el Aviso de Privacidad al migrante y marcar la casilla de aceptación.")
+            
         if form.is_valid():
             usuario = request.user
 
@@ -212,12 +215,22 @@ def registrar_migrante(request):
             )
             # ──────────────────────────────────────────────────────────────────
 
+            # Registrar aceptación del aviso de privacidad en bitácora
+            from auditoria.models import BitacoraEvento
+            BitacoraEvento.objects.create(
+                usuario=usuario,
+                tipo='aviso_privacidad_aceptado',
+                descripcion=f'El migrante con folio {folio} aceptó el Aviso de Privacidad de Casa Monarca.',
+                ip=request.META.get('REMOTE_ADDR', ''),
+            )
+
             # Guardar folio en sesion para mostrar UNA SOLA VEZ en el modal
             request.session['folio_generado'] = folio
             request.session['folio_expediente_id'] = expediente.pk
 
             messages.success(request, 'Expediente registrado y cifrado. Pendiente de verificacion.')
             return redirect('expediente:registrar')
+
     else:
         form = EntrevistaForm()
 
@@ -804,8 +817,24 @@ def firmar_solicitud_arco(request, pk):
             expediente.verificado = True
             expediente.save()
 
+            # Si el nombre cambia, re-cifrar la llave AES para el acceso del migrante con las nuevas credenciales
+            campos_nombre = {'nombre_pila', 'primer_apellido', 'segundo_apellido'}
+            if campos_nombre & set(cambios_dict.keys()):
+                nombre_nuevo = f"{datos.get('nombre_pila', '')} {datos.get('primer_apellido', '')} {datos.get('segundo_apellido', '')}".strip()
+                folio = datos.get('folio', '')
+                
+                clave_nueva = derivar_clave_folio(folio, nombre_nuevo)
+                llave_aes_migrante_nueva = cifrar_llave_aes_simetrica(llave_aes, clave_nueva)
+                
+                acceso_migrante = AccesoExpediente.objects.filter(
+                    expediente=expediente, tipo_acceso='Migrante'
+                ).first()
+                if acceso_migrante:
+                    acceso_migrante.llave_aes_cifrada = llave_aes_migrante_nueva
+                    acceso_migrante.save()
+
             solicitud.estado = 'ejecutada'
-            msg = f'Rectificacion firmada y aplicada al expediente #{expediente.pk}.'
+            msg = f'Rectificacion firmada y aplicada al expediente #{expediente.pk}. Las credenciales del portal del migrante se actualizaron con el nuevo nombre.'
             evento = 'solicitud_arco_ejecutada'
 
         elif solicitud.tipo == 'oposicion':
@@ -842,11 +871,16 @@ def firmar_solicitud_arco(request, pk):
         messages.success(request, msg)
         return redirect('expediente:lista_arco')
 
+    campos_nombre = {'nombre_pila', 'primer_apellido', 'segundo_apellido'}
+    nombre_cambia = bool(campos_nombre & set(cambios_dict.keys()))
+
     return render(request, 'expediente/firmar_arco.html', {
         'solicitud': solicitud,
         'campos_dict': campos_dict,
         'cambios_dict': cambios_dict,
+        'nombre_cambia': nombre_cambia,
     })
+
 
 
 @login_required

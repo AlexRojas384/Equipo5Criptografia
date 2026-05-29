@@ -29,7 +29,9 @@ class BitacoraEvento(models.Model):
         ('solicitud_arco_firmada_cancelacion',   'Cancelacion ARCO firmada por Coordinador (pendiente Admin)'),
         ('solicitud_arco_cancelacion_rechazada', 'Cancelacion ARCO rechazada por Admin en paso final'),
         ('expediente_cancelado_arco',            'Expediente eliminado por ejecucion ARCO de cancelacion'),
+        ('aviso_privacidad_aceptado',            'Aceptacion de Aviso de Privacidad de Casa Monarca'),
     ]
+
 
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,

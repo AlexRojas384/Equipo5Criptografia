@@ -1,0 +1,68 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]: 🦋 Casa Monarca
+    - generic [ref=e4]:
+      - generic [ref=e5]: Administrador Produccion
+      - generic [ref=e6]: Administrador
+      - link "🔑" [ref=e7] [cursor=pointer]:
+        - /url: /usuarios/cambiar-password/
+      - link "Cerrar sesión" [ref=e8] [cursor=pointer]:
+        - /url: /usuarios/logout/
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - heading "Bienvenido, Administrador Produccion" [level=2] [ref=e12]
+        - paragraph [ref=e13]: Selecciona una acción.
+      - button "🛡️ Seguridad y Permisos ▼" [ref=e14] [cursor=pointer]:
+        - text: 🛡️ Seguridad y Permisos
+        - generic [ref=e15]: ▼
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - heading "Estado Criptográfico" [level=3] [ref=e18]
+        - paragraph [ref=e19]:
+          - strong [ref=e20]: "Llaves RSA:"
+          - text: Activas
+        - paragraph [ref=e21]:
+          - strong [ref=e22]: "Certificado X.509:"
+          - text: Activo
+      - generic [ref=e23]:
+        - heading "Permisos Efectivos" [level=3] [ref=e24]
+        - list [ref=e25]:
+          - listitem [ref=e26]: ▫ Editar expedientes
+          - listitem [ref=e27]: ▫ Eliminar expedientes
+          - listitem [ref=e28]: ▫ Exportar expedientes
+          - listitem [ref=e29]: ▫ Gestionar usuarios
+          - listitem [ref=e30]: ▫ Registrar expedientes nuevos
+          - listitem [ref=e31]: ▫ Ver bitacora de auditoria
+          - listitem [ref=e32]: ▫ Visualizar expedientes
+    - generic [ref=e33]:
+      - link "📋 Registrar migrante Llenar el formulario de entrevista de ingreso." [ref=e34] [cursor=pointer]:
+        - /url: /expediente/registrar/
+        - generic [ref=e35]: 📋
+        - generic [ref=e36]: Registrar migrante
+        - generic [ref=e37]: Llenar el formulario de entrevista de ingreso.
+      - link "🗂️ Ver expedientes Consultar y editar expedientes existentes." [ref=e38] [cursor=pointer]:
+        - /url: /expediente/expedientes/
+        - generic [ref=e39]: 🗂️
+        - generic [ref=e40]: Ver expedientes
+        - generic [ref=e41]: Consultar y editar expedientes existentes.
+      - link "📤 Exportar expedientes Descargar expedientes en formato seguro." [ref=e42] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e43]: 📤
+        - generic [ref=e44]: Exportar expedientes
+        - generic [ref=e45]: Descargar expedientes en formato seguro.
+      - link "👥 Gestionar usuarios Crear, editar y asignar roles a colaboradores." [ref=e46] [cursor=pointer]:
+        - /url: /usuarios/admin-panel/
+        - generic [ref=e48]: 👥
+        - generic [ref=e49]: Gestionar usuarios
+        - generic [ref=e50]: Crear, editar y asignar roles a colaboradores.
+      - link "⚖️ Solicitudes ARCO Gestionar derechos de acceso, rectificación, cancelación y oposición." [ref=e51] [cursor=pointer]:
+        - /url: /expediente/arco/
+        - generic [ref=e53]: ⚖️
+        - generic [ref=e54]: Solicitudes ARCO
+        - generic [ref=e55]: Gestionar derechos de acceso, rectificación, cancelación y oposición.
+      - link "🔍 Bitácora de auditoría Revisar el registro de eventos del sistema." [ref=e56] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e57]: 🔍
+        - generic [ref=e58]: Bitácora de auditoría
+        - generic [ref=e59]: Revisar el registro de eventos del sistema.

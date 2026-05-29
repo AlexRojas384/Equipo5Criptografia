@@ -139,6 +139,12 @@
             <div class="alert-info" style="margin-top: 2rem;">
                 <strong>Rectificacion:</strong> Al firmar, los cambios mostrados arriba se aplicaran automaticamente al expediente: se descifrara con la llave de tu rol, se actualizara con los nuevos valores, se re-cifrara con la misma llave AES, se recalculara el hash y se firmara con tu llave SAT.
             </div>
+            {% if nombre_cambia %}
+            <div class="alert-warning" style="margin-top: 1rem; border-left: 4px solid #f39c12; background: #fffdf6; color: #6e6e6e;">
+                <strong style="color: #d35400;">⚠️ Atención:</strong> Esta rectificación modifica el nombre del migrante. Al firmar, las credenciales de acceso al Portal del Migrante se actualizarán automáticamente con el nombre nuevo. El folio del migrante <strong>no cambia</strong>.
+            </div>
+            {% endif %}
+
         {% else %}
             <div class="alert-info" style="margin-top: 2rem;">
                 <strong>Oposicion:</strong> Al firmar, la etiqueta sera anexada al expediente y quedara visible para los roles de lectura.

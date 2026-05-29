@@ -1,0 +1,15 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - heading "🦋 Casa Monarca" [level=1] [ref=e4]
+    - paragraph [ref=e5]: Ayuda Humanitaria al Migrante
+  - separator [ref=e6]
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]: Usuario
+      - textbox "Usuario" [active] [ref=e10]:
+        - /placeholder: Nombre de usuario
+    - generic [ref=e11]:
+      - generic [ref=e12]: Contraseña
+      - textbox "Contraseña" [ref=e13]:
+        - /placeholder: ••••••••
+    - button "Iniciar sesión" [ref=e14] [cursor=pointer]

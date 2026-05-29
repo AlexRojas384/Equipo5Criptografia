@@ -1,0 +1,60 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]: 🦋 Casa Monarca
+    - generic [ref=e4]:
+      - generic [ref=e5]: David Aguirre
+      - generic [ref=e6]: Coordinador_Administracion
+      - link "🔑" [ref=e7] [cursor=pointer]:
+        - /url: /usuarios/cambiar-password/
+      - link "Cerrar sesión" [ref=e8] [cursor=pointer]:
+        - /url: /usuarios/logout/
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - heading "Bienvenido, David Aguirre" [level=2] [ref=e12]
+        - paragraph [ref=e13]: Selecciona una acción.
+      - button "🛡️ Seguridad y Permisos ▼" [ref=e14] [cursor=pointer]:
+        - text: 🛡️ Seguridad y Permisos
+        - generic [ref=e15]: ▼
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - heading "Estado Criptográfico" [level=3] [ref=e18]
+        - paragraph [ref=e19]:
+          - strong [ref=e20]: "Llaves RSA:"
+          - text: Activas
+        - paragraph [ref=e21]:
+          - strong [ref=e22]: "Certificado X.509:"
+          - text: Activo
+      - generic [ref=e23]:
+        - heading "Permisos Efectivos" [level=3] [ref=e24]
+        - list [ref=e25]:
+          - listitem [ref=e26]: ▫ Editar expedientes
+          - listitem [ref=e27]: ▫ Exportar expedientes
+          - listitem [ref=e28]: ▫ Registrar expedientes nuevos
+          - listitem [ref=e29]: ▫ Visualizar expedientes
+    - generic [ref=e30]:
+      - link "📋 Registrar migrante Llenar el formulario de entrevista de ingreso." [ref=e31] [cursor=pointer]:
+        - /url: /expediente/registrar/
+        - generic [ref=e32]: 📋
+        - generic [ref=e33]: Registrar migrante
+        - generic [ref=e34]: Llenar el formulario de entrevista de ingreso.
+      - link "🗂️ Ver expedientes Consultar y editar expedientes existentes." [ref=e35] [cursor=pointer]:
+        - /url: /expediente/expedientes/
+        - generic [ref=e36]: 🗂️
+        - generic [ref=e37]: Ver expedientes
+        - generic [ref=e38]: Consultar y editar expedientes existentes.
+      - link "📤 Exportar expedientes Descargar expedientes en formato seguro." [ref=e39] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e40]: 📤
+        - generic [ref=e41]: Exportar expedientes
+        - generic [ref=e42]: Descargar expedientes en formato seguro.
+      - link "⚖️ Solicitudes ARCO Gestionar derechos de acceso, rectificación, cancelación y oposición." [ref=e43] [cursor=pointer]:
+        - /url: /expediente/arco/
+        - generic [ref=e45]: ⚖️
+        - generic [ref=e46]: Solicitudes ARCO
+        - generic [ref=e47]: Gestionar derechos de acceso, rectificación, cancelación y oposición.
+      - link "✉️ Solicitar cambio de rol Pide al administrador que cambie tu rol o permisos." [ref=e48] [cursor=pointer]:
+        - /url: /usuarios/solicitar-rol/
+        - generic [ref=e49]: ✉️
+        - generic [ref=e50]: Solicitar cambio de rol
+        - generic [ref=e51]: Pide al administrador que cambie tu rol o permisos.

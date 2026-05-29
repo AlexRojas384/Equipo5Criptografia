@@ -202,7 +202,15 @@
             </div>
             {% endfor %}
 
+            <div class="form-group privacy-group" style="display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                <input type="checkbox" name="aviso_privacidad" id="id_aviso_privacidad" required style="width: auto; margin-top: 0.25rem; transform: scale(1.15); cursor: pointer;">
+                <label for="id_aviso_privacidad" style="display: inline; font-weight: 500; font-size: 0.875rem; color: #444; cursor: pointer; line-height: 1.4; margin-bottom: 0;">
+                    He mostrado el <a href="{% url 'portal_migrante:privacidad' %}" target="_blank" style="color: #2980b9; text-decoration: underline; font-weight: 600;">Aviso de Privacidad</a> al migrante y está de acuerdo con los términos de Casa Monarca.
+                </label>
+            </div>
+
             <hr class="divider">
+
 
             <button type="submit" class="btn-submit">Guardar expediente</button>
             <p class="lock-notice">Los datos serán cifrados con AES-256-EAX. El expediente quedará pendiente de verificación.</p>

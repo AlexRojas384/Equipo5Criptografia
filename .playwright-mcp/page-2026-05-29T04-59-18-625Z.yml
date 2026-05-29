@@ -1,0 +1,110 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]: 🦋 Casa Monarca
+    - link "← Volver al Dashboard" [ref=e4] [cursor=pointer]:
+      - /url: /expediente/dashboard/
+  - generic [ref=e5]:
+    - heading "Todos los Expedientes" [level=2] [ref=e7]
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]: Estado de Verificación
+        - combobox [ref=e11]:
+          - option "Todos" [selected]
+          - option "Verificados"
+          - option "Pendientes"
+      - generic [ref=e12]:
+        - generic [ref=e13]: Creado por
+        - combobox [ref=e14]:
+          - option "Todos" [selected]
+          - option "admin_prod"
+          - option "daniel"
+          - option "david"
+          - option "diego"
+      - generic [ref=e15]:
+        - generic [ref=e16]: Fecha Desde
+        - textbox [ref=e17]
+      - generic [ref=e18]:
+        - generic [ref=e19]: Fecha Hasta
+        - textbox [ref=e20]
+      - button "Filtrar" [ref=e21] [cursor=pointer]
+      - link "Limpiar" [ref=e22] [cursor=pointer]:
+        - /url: /expediente/expedientes/
+    - generic [ref=e23]:
+      - table [ref=e25]:
+        - rowgroup [ref=e26]:
+          - row "Validar ID Fecha Atención Nombre Completo Género País de Origen Creado por Estado Acciones" [ref=e27]:
+            - columnheader "Validar" [ref=e28]
+            - columnheader "ID" [ref=e29]
+            - columnheader "Fecha Atención" [ref=e30]
+            - columnheader "Nombre Completo" [ref=e31]
+            - columnheader "Género" [ref=e32]
+            - columnheader "País de Origen" [ref=e33]
+            - columnheader "Creado por" [ref=e34]
+            - columnheader "Estado" [ref=e35]
+            - columnheader "Acciones" [ref=e36]
+        - rowgroup [ref=e37]:
+          - row "#7 26 de Mayo de 2026 kanye west lopez Masculino SA diego Verificado ✏️" [ref=e38]:
+            - cell [ref=e39]
+            - cell "#7" [ref=e40]
+            - cell "26 de Mayo de 2026" [ref=e41]
+            - cell "kanye west lopez" [ref=e42]
+            - cell "Masculino" [ref=e43]
+            - cell "SA" [ref=e44]
+            - cell "diego" [ref=e45]
+            - cell "Verificado" [ref=e46]
+            - cell "✏️" [ref=e47]:
+              - link "✏️" [ref=e48] [cursor=pointer]:
+                - /url: /expediente/expedientes/editar/7/
+          - row "#5 22 de Mayo de 2026 paco memo ochoa Masculino MX daniel Verificado ✏️" [ref=e49]:
+            - cell [ref=e50]
+            - cell "#5" [ref=e51]
+            - cell "22 de Mayo de 2026" [ref=e52]
+            - cell "paco memo ochoa" [ref=e53]
+            - cell "Masculino" [ref=e54]
+            - cell "MX" [ref=e55]
+            - cell "daniel" [ref=e56]
+            - cell "Verificado" [ref=e57]
+            - cell "✏️" [ref=e58]:
+              - link "✏️" [ref=e59] [cursor=pointer]:
+                - /url: /expediente/expedientes/editar/5/
+          - row "#4 28 de Abril de 2026 Melvin Y las ardillas X Masculino US diego Pendiente ✏️" [ref=e60]:
+            - cell [ref=e61]:
+              - checkbox [ref=e62]
+            - cell "#4" [ref=e63]
+            - cell "28 de Abril de 2026" [ref=e64]
+            - cell "Melvin Y las ardillas X" [ref=e65]
+            - cell "Masculino" [ref=e66]
+            - cell "US" [ref=e67]
+            - cell "diego" [ref=e68]
+            - cell "Pendiente" [ref=e69]
+            - cell "✏️" [ref=e70]:
+              - link "✏️" [ref=e71] [cursor=pointer]:
+                - /url: /expediente/expedientes/editar/4/
+          - row "#3 26 de Abril de 2026 daniel 2 de pool 2 Masculino RO admin_prod Pendiente ✏️" [ref=e72]:
+            - cell [ref=e73]:
+              - checkbox [ref=e74]
+            - cell "#3" [ref=e75]
+            - cell "26 de Abril de 2026" [ref=e76]
+            - cell "daniel 2 de pool 2" [ref=e77]
+            - cell "Masculino" [ref=e78]
+            - cell "RO" [ref=e79]
+            - cell "admin_prod" [ref=e80]
+            - cell "Pendiente" [ref=e81]
+            - cell "✏️" [ref=e82]:
+              - link "✏️" [ref=e83] [cursor=pointer]:
+                - /url: /expediente/expedientes/editar/3/
+          - row "#2 26 de Abril de 2026 diego arias X Masculino MA david Verificado ✏️" [ref=e84]:
+            - cell [ref=e85]
+            - cell "#2" [ref=e86]
+            - cell "26 de Abril de 2026" [ref=e87]
+            - cell "diego arias X" [ref=e88]
+            - cell "Masculino" [ref=e89]
+            - cell "MA" [ref=e90]
+            - cell "david" [ref=e91]
+            - cell "Verificado" [ref=e92]
+            - cell "✏️" [ref=e93]:
+              - link "✏️" [ref=e94] [cursor=pointer]:
+                - /url: /expediente/expedientes/editar/2/
+      - generic [ref=e95]:
+        - generic [ref=e96]: "Nota: Se requerirá la llave de firma (.key) si no ha sido cargada en esta sesión."
+        - button "Firmar y verificar seleccionados" [ref=e97] [cursor=pointer]

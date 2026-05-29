@@ -1,0 +1,18 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - heading "Verificación de llave de firma" [level=1] [ref=e4]
+    - paragraph [ref=e5]: Operación crítica. Ingresa el archivo de llave (.key) y la contraseña correspondiente para continuar.
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: 1. Archivo de Llave (.key)
+      - generic [ref=e9] [cursor=pointer]:
+        - button "Choose File" [active] [ref=e10]
+        - generic: admin_prod.key
+    - generic [ref=e11]:
+      - generic [ref=e12]: 2. Contraseña de la llave
+      - textbox "2. Contraseña de la llave" [ref=e13]:
+        - /placeholder: Ingresa la contraseña o passphrase
+        - text: 178490e92013b829d855c786c6c5da721ffaa3fbb253842d7b3722886a58ab8f
+    - button "Validar Firma y Continuar" [ref=e14] [cursor=pointer]
+    - link "Cancelar" [ref=e15] [cursor=pointer]:
+      - /url: /expediente/dashboard/

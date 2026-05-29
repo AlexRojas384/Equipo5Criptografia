@@ -1,0 +1,74 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]: 🦋 Casa Monarca
+    - link "← Volver al Dashboard" [ref=e4] [cursor=pointer]:
+      - /url: /expediente/dashboard/
+  - generic [ref=e5]:
+    - heading "Mis Expedientes" [level=2] [ref=e7]
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]: Estado de Verificación
+        - combobox [ref=e11]:
+          - option "Todos" [selected]
+          - option "Verificados"
+          - option "Pendientes"
+      - generic [ref=e12]:
+        - generic [ref=e13]: Fecha Desde
+        - textbox [ref=e14]
+      - generic [ref=e15]:
+        - generic [ref=e16]: Fecha Hasta
+        - textbox [ref=e17]
+      - button "Filtrar" [ref=e18] [cursor=pointer]
+      - link "Limpiar" [ref=e19] [cursor=pointer]:
+        - /url: /expediente/expedientes/
+    - table [ref=e22]:
+      - rowgroup [ref=e23]:
+        - row "ID Fecha Atención Nombre Completo Género País de Origen Creado por Estado" [ref=e24]:
+          - columnheader "ID" [ref=e25]
+          - columnheader "Fecha Atención" [ref=e26]
+          - columnheader "Nombre Completo" [ref=e27]
+          - columnheader "Género" [ref=e28]
+          - columnheader "País de Origen" [ref=e29]
+          - columnheader "Creado por" [ref=e30]
+          - columnheader "Estado" [ref=e31]
+      - rowgroup [ref=e32]:
+        - row "#7 26 de Mayo de 2026 kanye west lopez Masculino SA diego Verificado" [ref=e33]:
+          - cell "#7" [ref=e34]
+          - cell "26 de Mayo de 2026" [ref=e35]
+          - cell "kanye west lopez" [ref=e36]
+          - cell "Masculino" [ref=e37]
+          - cell "SA" [ref=e38]
+          - cell "diego" [ref=e39]
+          - cell "Verificado" [ref=e40]
+        - row "#5 22 de Mayo de 2026 paco memo ochoa Masculino MX daniel Verificado" [ref=e41]:
+          - cell "#5" [ref=e42]
+          - cell "22 de Mayo de 2026" [ref=e43]
+          - cell "paco memo ochoa" [ref=e44]
+          - cell "Masculino" [ref=e45]
+          - cell "MX" [ref=e46]
+          - cell "daniel" [ref=e47]
+          - cell "Verificado" [ref=e48]
+        - row "#4 28 de Abril de 2026 Melvin Y las ardillas X Masculino US diego Pendiente" [ref=e49]:
+          - cell "#4" [ref=e50]
+          - cell "28 de Abril de 2026" [ref=e51]
+          - cell "Melvin Y las ardillas X" [ref=e52]
+          - cell "Masculino" [ref=e53]
+          - cell "US" [ref=e54]
+          - cell "diego" [ref=e55]
+          - cell "Pendiente" [ref=e56]
+        - row "#3 26 de Abril de 2026 daniel 2 de pool 2 Masculino RO admin_prod Pendiente" [ref=e57]:
+          - cell "#3" [ref=e58]
+          - cell "26 de Abril de 2026" [ref=e59]
+          - cell "daniel 2 de pool 2" [ref=e60]
+          - cell "Masculino" [ref=e61]
+          - cell "RO" [ref=e62]
+          - cell "admin_prod" [ref=e63]
+          - cell "Pendiente" [ref=e64]
+        - row "#2 26 de Abril de 2026 diego arias X Masculino MA david Verificado" [ref=e65]:
+          - cell "#2" [ref=e66]
+          - cell "26 de Abril de 2026" [ref=e67]
+          - cell "diego arias X" [ref=e68]
+          - cell "Masculino" [ref=e69]
+          - cell "MA" [ref=e70]
+          - cell "david" [ref=e71]
+          - cell "Verificado" [ref=e72]

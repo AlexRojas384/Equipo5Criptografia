@@ -1,0 +1,16 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - heading "🦋 Casa Monarca" [level=1] [ref=e4]
+    - paragraph [ref=e5]: Ayuda Humanitaria al Migrante
+  - separator [ref=e6]
+  - generic [ref=e8]: Tu sesión no fue desbloqueada correctamente. Vuelve a iniciar sesión.
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]: Usuario
+      - textbox "Usuario" [active] [ref=e12]:
+        - /placeholder: Nombre de usuario
+    - generic [ref=e13]:
+      - generic [ref=e14]: Contraseña
+      - textbox "Contraseña" [ref=e15]:
+        - /placeholder: ••••••••
+    - button "Iniciar sesión" [ref=e16] [cursor=pointer]

@@ -1,0 +1,435 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]: 🦋 Casa Monarca
+    - link "← Volver al dashboard" [ref=e4] [cursor=pointer]:
+      - /url: /expediente/dashboard/
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - heading "Gestión de Usuarios y Roles" [level=2] [ref=e7]
+      - paragraph [ref=e8]: Administra roles, permisos individuales y solicitudes de tu equipo.
+    - generic [ref=e9]: Usuario "tc02_usuario" creado exitosamente con rol Usuario.
+    - generic [ref=e10]:
+      - button "Usuarios" [ref=e11] [cursor=pointer]
+      - button "Solicitudes" [ref=e12] [cursor=pointer]
+      - button "Bitácora" [ref=e13] [cursor=pointer]
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16] [cursor=pointer]:
+          - text: Dar de alta usuario
+          - generic [ref=e17]: ▼
+        - generic [ref=e344]:
+          - generic [ref=e345]:
+            - generic [ref=e346]:
+              - generic [ref=e347]: Nombre de usuario *
+              - textbox "Nombre de usuario *" [ref=e348]:
+                - /placeholder: "ej: juan.perez"
+            - generic [ref=e349]:
+              - generic [ref=e350]: Contraseña *
+              - textbox "Contraseña *" [ref=e351]:
+                - /placeholder: Mínimo 8 caracteres
+              - paragraph [ref=e352]: El usuario podrá cambiarla después.
+            - generic [ref=e353]:
+              - generic [ref=e354]: Nombre
+              - textbox "Nombre" [ref=e355]:
+                - /placeholder: "ej: Juan"
+            - generic [ref=e356]:
+              - generic [ref=e357]: Apellido
+              - textbox "Apellido" [ref=e358]:
+                - /placeholder: "ej: Pérez"
+            - generic [ref=e359]:
+              - generic [ref=e360]: Rol
+              - combobox "Rol" [ref=e361]:
+                - option "Administrador"
+                - option "Coordinador de Administración"
+                - option "Coordinador Legal"
+                - option "Coordinador Psicosocial"
+                - option "Coordinador Humanitario"
+                - option "Coordinador de Comunicación"
+                - option "Operativo"
+                - option "Usuario" [selected]
+            - button "Crear usuario" [ref=e363] [cursor=pointer]
+          - paragraph [ref=e364]: Se generará un par de llaves RSA-2048 para el nuevo usuario.
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]: Usuarios registrados
+          - generic [ref=e21] [cursor=pointer]:
+            - checkbox "Mostrar inactivos" [ref=e22]
+            - text: Mostrar inactivos
+        - table [ref=e24]:
+          - rowgroup [ref=e25]:
+            - row "Usuario Nombre completo Rol Estado Criptografía Cambiar rol Acciones" [ref=e26]:
+              - columnheader "Usuario" [ref=e27]
+              - columnheader "Nombre completo" [ref=e28]
+              - columnheader "Rol" [ref=e29]
+              - columnheader "Estado" [ref=e30]
+              - columnheader "Criptografía" [ref=e31]
+              - columnheader "Cambiar rol" [ref=e32]
+              - columnheader "Acciones" [ref=e33]
+          - rowgroup [ref=e34]:
+            - row "admin_contingencia Administrador Contingencias Administrador Activo 🔑 OK 📜 OK ⚙️ Administrador Guardar 🔒 Permisos ▶ Revocar certificado" [ref=e35]:
+              - cell "admin_contingencia" [ref=e36]:
+                - strong [ref=e37]: admin_contingencia
+              - cell "Administrador Contingencias" [ref=e38]
+              - cell "Administrador" [ref=e39]:
+                - generic [ref=e40]: Administrador
+              - cell "Activo" [ref=e41]:
+                - generic [ref=e42]: Activo
+              - cell "🔑 OK 📜 OK ⚙️" [ref=e43]:
+                - generic [ref=e44]:
+                  - generic "Llaves RSA OK" [ref=e45]: 🔑 OK
+                  - generic "Vence 26/04/2027" [ref=e46]: 📜 OK
+                  - button "⚙️" [ref=e48] [cursor=pointer]
+              - cell "Administrador Guardar" [ref=e49]:
+                - generic [ref=e50]:
+                  - combobox [ref=e51] [cursor=pointer]:
+                    - option "Administrador" [selected]
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo"
+                    - option "Usuario"
+                  - button "Guardar" [ref=e52] [cursor=pointer]
+              - cell "🔒 Permisos ▶ Revocar certificado" [ref=e53]:
+                - generic [ref=e54]:
+                  - generic [ref=e55]:
+                    - button "🔒" [ref=e57] [cursor=pointer]
+                    - generic [ref=e58] [cursor=pointer]:
+                      - text: Permisos
+                      - generic [ref=e59]: ▶
+                  - button "Revocar certificado" [ref=e61] [cursor=pointer]
+            - row [ref=e62]:
+              - cell [ref=e63]
+            - row "admin_prod Tú Administrador Produccion Administrador Activo 🔑 OK 📜 OK ⚙️ — Permisos ▶" [ref=e64]:
+              - cell "admin_prod Tú" [ref=e65]:
+                - strong [ref=e66]: admin_prod
+                - text: Tú
+              - cell "Administrador Produccion" [ref=e67]
+              - cell "Administrador" [ref=e68]:
+                - generic [ref=e69]: Administrador
+              - cell "Activo" [ref=e70]:
+                - generic [ref=e71]: Activo
+              - cell "🔑 OK 📜 OK ⚙️" [ref=e72]:
+                - generic [ref=e73]:
+                  - generic "Llaves RSA OK" [ref=e74]: 🔑 OK
+                  - generic "Vence 26/04/2027" [ref=e75]: 📜 OK
+                  - button "⚙️" [ref=e77] [cursor=pointer]
+              - cell "—" [ref=e78]
+              - cell "Permisos ▶" [ref=e79]:
+                - generic [ref=e82] [cursor=pointer]:
+                  - text: Permisos
+                  - generic [ref=e83]: ▶
+            - row [ref=e84]:
+              - cell [ref=e85]
+            - row "david David Aguirre Coordinador_Administracion Activo 🔑 OK 📜 OK ⚙️ Coordinador de Administración Guardar 🔒 Permisos ▶ Revocar certificado" [ref=e86]:
+              - cell "david" [ref=e87]:
+                - strong [ref=e88]: david
+              - cell "David Aguirre" [ref=e89]
+              - cell "Coordinador_Administracion" [ref=e90]:
+                - generic [ref=e91]: Coordinador_Administracion
+              - cell "Activo" [ref=e92]:
+                - generic [ref=e93]: Activo
+              - cell "🔑 OK 📜 OK ⚙️" [ref=e94]:
+                - generic [ref=e95]:
+                  - generic "Llaves RSA OK" [ref=e96]: 🔑 OK
+                  - generic "Vence 29/04/2027" [ref=e97]: 📜 OK
+                  - button "⚙️" [ref=e99] [cursor=pointer]
+              - cell "Coordinador de Administración Guardar" [ref=e100]:
+                - generic [ref=e101]:
+                  - combobox [ref=e102] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración" [selected]
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo"
+                    - option "Usuario"
+                  - button "Guardar" [ref=e103] [cursor=pointer]
+              - cell "🔒 Permisos ▶ Revocar certificado" [ref=e104]:
+                - generic [ref=e105]:
+                  - generic [ref=e106]:
+                    - button "🔒" [ref=e108] [cursor=pointer]
+                    - generic [ref=e109] [cursor=pointer]:
+                      - text: Permisos
+                      - generic [ref=e110]: ▶
+                  - button "Revocar certificado" [ref=e112] [cursor=pointer]
+            - row [ref=e113]:
+              - cell [ref=e114]
+            - row [ref=e115]:
+              - cell [ref=e116]
+            - row "sancho Sancho Panza Coordinador_Comunicacion Activo 🔑 OK 📜 OK ⚙️ Coordinador de Comunicación Guardar 🔒 Permisos ▶ Revocar certificado" [ref=e117]:
+              - cell "sancho" [ref=e118]:
+                - strong [ref=e119]: sancho
+              - cell "Sancho Panza" [ref=e120]
+              - cell "Coordinador_Comunicacion" [ref=e121]:
+                - generic [ref=e122]: Coordinador_Comunicacion
+              - cell "Activo" [ref=e123]:
+                - generic [ref=e124]: Activo
+              - cell "🔑 OK 📜 OK ⚙️" [ref=e125]:
+                - generic [ref=e126]:
+                  - generic "Llaves RSA OK" [ref=e127]: 🔑 OK
+                  - generic "Vence 29/04/2027" [ref=e128]: 📜 OK
+                  - button "⚙️" [ref=e130] [cursor=pointer]
+              - cell "Coordinador de Comunicación Guardar" [ref=e131]:
+                - generic [ref=e132]:
+                  - combobox [ref=e133] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación" [selected]
+                    - option "Operativo"
+                    - option "Usuario"
+                  - button "Guardar" [ref=e134] [cursor=pointer]
+              - cell "🔒 Permisos ▶ Revocar certificado" [ref=e135]:
+                - generic [ref=e136]:
+                  - generic [ref=e137]:
+                    - button "🔒" [ref=e139] [cursor=pointer]
+                    - generic [ref=e140] [cursor=pointer]:
+                      - text: Permisos
+                      - generic [ref=e141]: ▶
+                  - button "Revocar certificado" [ref=e143] [cursor=pointer]
+            - row [ref=e144]:
+              - cell [ref=e145]
+            - row "alex Alex Rojas Coordinador_Humanitario Activo 🔑 OK 📜 OK ⚙️ Coordinador Humanitario Guardar 🔒 Permisos ▶ Revocar certificado" [ref=e146]:
+              - cell "alex" [ref=e147]:
+                - strong [ref=e148]: alex
+              - cell "Alex Rojas" [ref=e149]
+              - cell "Coordinador_Humanitario" [ref=e150]:
+                - generic [ref=e151]: Coordinador_Humanitario
+              - cell "Activo" [ref=e152]:
+                - generic [ref=e153]: Activo
+              - cell "🔑 OK 📜 OK ⚙️" [ref=e154]:
+                - generic [ref=e155]:
+                  - generic "Llaves RSA OK" [ref=e156]: 🔑 OK
+                  - generic "Vence 29/04/2027" [ref=e157]: 📜 OK
+                  - button "⚙️" [ref=e159] [cursor=pointer]
+              - cell "Coordinador Humanitario Guardar" [ref=e160]:
+                - generic [ref=e161]:
+                  - combobox [ref=e162] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario" [selected]
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo"
+                    - option "Usuario"
+                  - button "Guardar" [ref=e163] [cursor=pointer]
+              - cell "🔒 Permisos ▶ Revocar certificado" [ref=e164]:
+                - generic [ref=e165]:
+                  - generic [ref=e166]:
+                    - button "🔒" [ref=e168] [cursor=pointer]
+                    - generic [ref=e169] [cursor=pointer]:
+                      - text: Permisos
+                      - generic [ref=e170]: ▶
+                  - button "Revocar certificado" [ref=e172] [cursor=pointer]
+            - row [ref=e173]:
+              - cell [ref=e174]
+            - row "lalo lalo martinez Coordinador_Psicosocial Activo 🔑 OK 📜 OK ⚙️ Coordinador Psicosocial Guardar 🔒 Permisos ▶ Revocar certificado" [ref=e175]:
+              - cell "lalo" [ref=e176]:
+                - strong [ref=e177]: lalo
+              - cell "lalo martinez" [ref=e178]
+              - cell "Coordinador_Psicosocial" [ref=e179]:
+                - generic [ref=e180]: Coordinador_Psicosocial
+              - cell "Activo" [ref=e181]:
+                - generic [ref=e182]: Activo
+              - cell "🔑 OK 📜 OK ⚙️" [ref=e183]:
+                - generic [ref=e184]:
+                  - generic "Llaves RSA OK" [ref=e185]: 🔑 OK
+                  - generic "Vence 22/05/2027" [ref=e186]: 📜 OK
+                  - button "⚙️" [ref=e188] [cursor=pointer]
+              - cell "Coordinador Psicosocial Guardar" [ref=e189]:
+                - generic [ref=e190]:
+                  - combobox [ref=e191] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial" [selected]
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo"
+                    - option "Usuario"
+                  - button "Guardar" [ref=e192] [cursor=pointer]
+              - cell "🔒 Permisos ▶ Revocar certificado" [ref=e193]:
+                - generic [ref=e194]:
+                  - generic [ref=e195]:
+                    - button "🔒" [ref=e197] [cursor=pointer]
+                    - generic [ref=e198] [cursor=pointer]:
+                      - text: Permisos
+                      - generic [ref=e199]: ▶
+                  - button "Revocar certificado" [ref=e201] [cursor=pointer]
+            - row [ref=e202]:
+              - cell [ref=e203]
+            - row "arturo Arturo Camacho Operativo Activo 🔑 OK 📜 NO ⚙️ Operativo Guardar 🔒 Permisos ▶" [ref=e204]:
+              - cell "arturo" [ref=e205]:
+                - strong [ref=e206]: arturo
+              - cell "Arturo Camacho" [ref=e207]
+              - cell "Operativo" [ref=e208]:
+                - generic [ref=e209]: Operativo
+              - cell "Activo" [ref=e210]:
+                - generic [ref=e211]: Activo
+              - cell "🔑 OK 📜 NO ⚙️" [ref=e212]:
+                - generic [ref=e213]:
+                  - generic "Llaves RSA OK" [ref=e214]: 🔑 OK
+                  - generic "Sin certificado" [ref=e215]: 📜 NO
+                  - button "⚙️" [ref=e217] [cursor=pointer]
+              - cell "Operativo Guardar" [ref=e218]:
+                - generic [ref=e219]:
+                  - combobox [ref=e220] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo" [selected]
+                    - option "Usuario"
+                  - button "Guardar" [ref=e221] [cursor=pointer]
+              - cell "🔒 Permisos ▶" [ref=e222]:
+                - generic [ref=e224]:
+                  - button "🔒" [ref=e226] [cursor=pointer]
+                  - generic [ref=e227] [cursor=pointer]:
+                    - text: Permisos
+                    - generic [ref=e228]: ▶
+            - row [ref=e229]:
+              - cell [ref=e230]
+            - row "daniel Daniel De Pool Operativo Activo 🔑 OK 📜 NO ⚙️ Operativo Guardar 🔒 Permisos ▶" [ref=e231]:
+              - cell "daniel" [ref=e232]:
+                - strong [ref=e233]: daniel
+              - cell "Daniel De Pool" [ref=e234]
+              - cell "Operativo" [ref=e235]:
+                - generic [ref=e236]: Operativo
+              - cell "Activo" [ref=e237]:
+                - generic [ref=e238]: Activo
+              - cell "🔑 OK 📜 NO ⚙️" [ref=e239]:
+                - generic [ref=e240]:
+                  - generic "Llaves RSA OK" [ref=e241]: 🔑 OK
+                  - generic "Sin certificado" [ref=e242]: 📜 NO
+                  - button "⚙️" [ref=e244] [cursor=pointer]
+              - cell "Operativo Guardar" [ref=e245]:
+                - generic [ref=e246]:
+                  - combobox [ref=e247] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo" [selected]
+                    - option "Usuario"
+                  - button "Guardar" [ref=e248] [cursor=pointer]
+              - cell "🔒 Permisos ▶" [ref=e249]:
+                - generic [ref=e251]:
+                  - button "🔒" [ref=e253] [cursor=pointer]
+                  - generic [ref=e254] [cursor=pointer]:
+                    - text: Permisos
+                    - generic [ref=e255]: ▶
+            - row [ref=e256]:
+              - cell [ref=e257]
+            - row "test_operativo — Operativo Activo 🔑 OK 📜 NO ⚙️ Operativo Guardar 🔒 Permisos ▶" [ref=e258]:
+              - cell "test_operativo" [ref=e259]:
+                - strong [ref=e260]: test_operativo
+              - cell "—" [ref=e261]
+              - cell "Operativo" [ref=e262]:
+                - generic [ref=e263]: Operativo
+              - cell "Activo" [ref=e264]:
+                - generic [ref=e265]: Activo
+              - cell "🔑 OK 📜 NO ⚙️" [ref=e266]:
+                - generic [ref=e267]:
+                  - generic "Llaves RSA OK" [ref=e268]: 🔑 OK
+                  - generic "Sin certificado" [ref=e269]: 📜 NO
+                  - button "⚙️" [ref=e271] [cursor=pointer]
+              - cell "Operativo Guardar" [ref=e272]:
+                - generic [ref=e273]:
+                  - combobox [ref=e274] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo" [selected]
+                    - option "Usuario"
+                  - button "Guardar" [ref=e275] [cursor=pointer]
+              - cell "🔒 Permisos ▶" [ref=e276]:
+                - generic [ref=e278]:
+                  - button "🔒" [ref=e280] [cursor=pointer]
+                  - generic [ref=e281] [cursor=pointer]:
+                    - text: Permisos
+                    - generic [ref=e282]: ▶
+            - row [ref=e283]:
+              - cell [ref=e284]
+            - row "diego Diego Arias Usuario Activo 🔑 OK 📜 NO ⚙️ Usuario Guardar 🔒 Permisos ▶" [ref=e285]:
+              - cell "diego" [ref=e286]:
+                - strong [ref=e287]: diego
+              - cell "Diego Arias" [ref=e288]
+              - cell "Usuario" [ref=e289]:
+                - generic [ref=e290]: Usuario
+              - cell "Activo" [ref=e291]:
+                - generic [ref=e292]: Activo
+              - cell "🔑 OK 📜 NO ⚙️" [ref=e293]:
+                - generic [ref=e294]:
+                  - generic "Llaves RSA OK" [ref=e295]: 🔑 OK
+                  - generic "Sin certificado" [ref=e296]: 📜 NO
+                  - button "⚙️" [ref=e298] [cursor=pointer]
+              - cell "Usuario Guardar" [ref=e299]:
+                - generic [ref=e300]:
+                  - combobox [ref=e301] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo"
+                    - option "Usuario" [selected]
+                  - button "Guardar" [ref=e302] [cursor=pointer]
+              - cell "🔒 Permisos ▶" [ref=e303]:
+                - generic [ref=e305]:
+                  - button "🔒" [ref=e307] [cursor=pointer]
+                  - generic [ref=e308] [cursor=pointer]:
+                    - text: Permisos
+                    - generic [ref=e309]: ▶
+            - row [ref=e310]:
+              - cell [ref=e311]
+            - row "tc02_usuario Test Usuario02 Usuario Activo 🔑 OK 📜 NO ⚙️ Usuario Guardar 🔒 Permisos ▶" [ref=e312]:
+              - cell "tc02_usuario" [ref=e313]:
+                - strong [ref=e314]: tc02_usuario
+              - cell "Test Usuario02" [ref=e315]
+              - cell "Usuario" [ref=e316]:
+                - generic [ref=e317]: Usuario
+              - cell "Activo" [ref=e318]:
+                - generic [ref=e319]: Activo
+              - cell "🔑 OK 📜 NO ⚙️" [ref=e320]:
+                - generic [ref=e321]:
+                  - generic "Llaves RSA OK" [ref=e322]: 🔑 OK
+                  - generic "Sin certificado" [ref=e323]: 📜 NO
+                  - button "⚙️" [ref=e325] [cursor=pointer]
+              - cell "Usuario Guardar" [ref=e326]:
+                - generic [ref=e327]:
+                  - combobox [ref=e328] [cursor=pointer]:
+                    - option "Administrador"
+                    - option "Coordinador de Administración"
+                    - option "Coordinador Legal"
+                    - option "Coordinador Psicosocial"
+                    - option "Coordinador Humanitario"
+                    - option "Coordinador de Comunicación"
+                    - option "Operativo"
+                    - option "Usuario" [selected]
+                  - button "Guardar" [ref=e329] [cursor=pointer]
+              - cell "🔒 Permisos ▶" [ref=e330]:
+                - generic [ref=e332]:
+                  - button "🔒" [ref=e334] [cursor=pointer]
+                  - generic [ref=e335] [cursor=pointer]:
+                    - text: Permisos
+                    - generic [ref=e336]: ▶
+            - row [ref=e337]:
+              - cell [ref=e338]
+            - row [ref=e339]:
+              - cell [ref=e340]
+            - row [ref=e341]:
+              - cell [ref=e342]

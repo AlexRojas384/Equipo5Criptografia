@@ -18,15 +18,13 @@ db.sqlite3
 .vscode/
 .idea/
 
-# -------------------------------------------------------------
 # Agregados de seguridad (Criptografía y Archivos del SO)
-# -------------------------------------------------------------
 
-# Archivos de certificados o llaves privadas / públicas (por si exportas localmente)
+# Archivos de certificados o llaves privadas / públicas
 *.pem
 *.key
 *.crt
-*.cert
+*.cer
 
 # Archivos estáticos de despliegue y subidas locales de usuarios (expedientes en crudo por si acaso)
 media/
@@ -36,7 +34,7 @@ staticfiles/
 .DS_Store
 Thumbs.db
 
-# Cobertura de pruebas (por si a futuro meten testing automático)
+# Cobertura de pruebas (por si a futuro hay testing automático)
 .coverage
 htmlcov/
 
