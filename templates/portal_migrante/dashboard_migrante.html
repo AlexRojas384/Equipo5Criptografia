@@ -27,20 +27,6 @@
         <div class="sub">Esta es la información personal que Casa Monarca tiene registrada sobre ti.</div>
     </div>
 
-    <div class="card card-pad mb" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; background:var(--primary-050); border-color:var(--primary-050);">
-        <div style="width:42px; height:42px; border-radius:11px; background:#fff; color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 7h10M5 21h14"/><path d="M7 7l-3 6a3 3 0 0 0 6 0z"/><path d="M17 7l3 6a3 3 0 0 1-6 0z"/></svg>
-        </div>
-        <div style="flex:1; min-width:200px;">
-            <div style="font-weight:700; color:var(--primary-700);">Tus derechos sobre tus datos</div>
-            <div class="muted" style="font-size:.88rem;">Puedes pedir corregir, restringir o eliminar tu información cuando quieras.</div>
-        </div>
-        <div class="row gap-sm wrap">
-            <a href="{% url 'portal_migrante:privacidad' %}" class="btn btn-secondary">Aviso de privacidad</a>
-            <a href="{% url 'portal_migrante:solicitar_arco' %}" class="btn btn-primary">Ejercer mis derechos</a>
-        </div>
-    </div>
-
     {% if solicitudes %}
     <div class="card card-pad mb" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -72,6 +58,20 @@
             <div class="data-item"><div class="k">Teléfono</div><div class="v">{{ datos.telefono|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
             <div class="data-item"><div class="k">Departamento / Estado</div><div class="v">{{ datos.departamento|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
             <div class="data-item"><div class="k">Grupo de población</div><div class="v">{{ datos.grupo_poblacion|default:"<span class='empty-value'>No registrado</span>"|safe }}</div></div>
+        </div>
+    </div>
+
+    <div class="card card-pad mb" style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; background:var(--primary-050); border-color:var(--primary-050);">
+        <div style="width:42px; height:42px; border-radius:11px; background:#fff; color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 7h10M5 21h14"/><path d="M7 7l-3 6a3 3 0 0 0 6 0z"/><path d="M17 7l3 6a3 3 0 0 1-6 0z"/></svg>
+        </div>
+        <div style="flex:1; min-width:200px;">
+            <div style="font-weight:700; color:var(--primary-700);">Tus derechos sobre tus datos</div>
+            <div class="muted" style="font-size:.88rem;">Puedes pedir corregir, restringir o eliminar tu información cuando quieras.</div>
+        </div>
+        <div class="row gap-sm wrap">
+            <a href="{% url 'portal_migrante:privacidad' %}" class="btn btn-secondary">Aviso de privacidad</a>
+            <a href="{% url 'portal_migrante:solicitar_arco' %}" class="btn btn-primary">Ejercer mis derechos</a>
         </div>
     </div>
 </div>
