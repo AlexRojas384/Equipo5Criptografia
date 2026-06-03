@@ -341,7 +341,46 @@ def lista_expedientes(request):
         'puede_verificar': 'puede_editar_expediente' in permisos_rol or 'puede_eliminar_expediente' in permisos_rol,
         'puede_editar': 'puede_editar_expediente' in permisos_rol,
         'puede_eliminar': 'puede_eliminar_expediente' in permisos_rol,
+        'puede_pre_aprobar': rol == 'Operativo',
     })
+
+
+# ─── Pre-aprobar expediente (Operativo) ─────────────────────────────────────
+
+@login_required(login_url='usuarios:login')
+def pre_aprobar_expediente(request, pk):
+    if request.method != 'POST':
+        return redirect('expediente:lista_expedientes')
+
+    usuario = request.user
+    if usuario.rol != 'Operativo':
+        messages.error(request, 'Solo el personal Operativo puede pre-aprobar expedientes.')
+        return redirect('expediente:lista_expedientes')
+
+    expediente = get_object_or_404(Expediente, pk=pk)
+    if expediente.verificado:
+        messages.warning(request, 'Este expediente ya fue verificado por un coordinador.')
+        return redirect('expediente:lista_expedientes')
+
+    expediente.pre_aprobado = not expediente.pre_aprobado
+    expediente.pre_aprobado_por = usuario if expediente.pre_aprobado else None
+    expediente.save()
+
+    from auditoria.models import BitacoraEvento
+    accion = 'pre-aprobó' if expediente.pre_aprobado else 'retiró pre-aprobación de'
+    BitacoraEvento.objects.create(
+        usuario=usuario,
+        tipo='pre_aprobacion_expediente',
+        descripcion=f'{usuario.username} {accion} el expediente #{pk}',
+        ip=request.META.get('REMOTE_ADDR', ''),
+    )
+
+    if expediente.pre_aprobado:
+        messages.success(request, f'Expediente #{pk} marcado como pre-aprobado.')
+    else:
+        messages.warning(request, f'Pre-aprobación del expediente #{pk} retirada.')
+
+    return redirect('expediente:lista_expedientes')
 
 
 # ─── Verificar expedientes ──────────────────────────────────────────────────

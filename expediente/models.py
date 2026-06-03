@@ -38,6 +38,15 @@ class Expediente(models.Model):
     # Estado de verificación
     verificado = models.BooleanField(default=False)
 
+    # Pre-aprobación por Operativo (previo a la firma del Coordinador)
+    pre_aprobado = models.BooleanField(default=False)
+    pre_aprobado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='expedientes_pre_aprobados',
+    )
+
     # Firma digital del colaborador
     firma_digital = models.TextField(blank=True, null=True)
 
