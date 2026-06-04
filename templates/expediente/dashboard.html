@@ -115,6 +115,7 @@
         </a>
         {% endif %}
 
+        {% comment %}
         {% if 'puede_exportar_expediente' in permisos_rol %}
         <a href="#" class="tile is-secondary">
             <div class="tile-top">
@@ -124,6 +125,7 @@
             <p>Descargar expedientes en formato seguro.</p>
         </a>
         {% endif %}
+        {% endcomment %}
 
         {% if 'puede_gestionar_usuarios' in permisos_rol %}
         <a href="{% url 'usuarios:admin_panel' %}" class="tile">
