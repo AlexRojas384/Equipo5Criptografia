@@ -1,102 +1,79 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitudes ARCO — Casa Monarca</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
-        .navbar { background: #1a5276; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; }
-        .btn-back { color: #aed6f1; text-decoration: none; font-size: 0.875rem; border: 1px solid #aed6f1; padding: 0.3rem 0.75rem; border-radius: 6px; }
-        .btn-back:hover { background: white; color: #1a5276; }
-
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
-
-        .header-section { margin-bottom: 1.5rem; }
-        h2 { color: #1a5276; margin-bottom: 0.5rem; }
-        p.subtitle { color: #666; font-size: 0.95rem; }
-
-        .table-card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 2rem;}
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        th { background: #f8f9fa; color: #333; font-weight: 600; }
-        tr:hover { background: #fbfcfd; }
-
-        .badge { padding: 0.3rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
-        .badge-rectificacion { background: #eaf2f8; color: #2980b9; }
-        .badge-cancelacion { background: #fdecea; color: #c0392b; }
-        .badge-oposicion { background: #fef5e7; color: #d35400; }
-
-        .btn-action { background: #1a5276; color: white; text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem; transition: background 0.2s; }
-        .btn-action:hover { background: #154360; }
-        
-        .alert-success { background: #eafaf1; color: #1e8449; border-left: 4px solid #1e8449; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-        .alert-error { background: #fdecea; color: #c0392b; border-left: 4px solid #c0392b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-    </style>
+    {% include "cm_base.html" %}
 </head>
 <body>
 
+<div class="cm-top-accent"></div>
 <nav class="navbar">
-    <div class="navbar-brand">🦋 Casa Monarca</div>
-    <a href="{% url 'expediente:dashboard' %}" class="btn-back">← Volver al Dashboard</a>
+    <a href="{% url 'expediente:dashboard' %}" class="brand">
+        <span class="cm-mark"></span>
+        <span class="wm">Casa Monarca<small>Ayuda Humanitaria al Migrante</small></span>
+    </a>
+    <div class="nav-right">
+        <a href="{% url 'expediente:dashboard' %}" class="btn btn-ghost btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+            Volver al panel
+        </a>
+    </div>
 </nav>
 
-<div class="container">
-    <div class="header-section">
-        <h2>Solicitudes de Derechos ARCO</h2>
+<div class="page page-wide">
+    <div class="page-head">
+        <div class="eyebrow">Derechos ARCO</div>
+        <h1>Solicitudes de derechos ARCO</h1>
         {% if rol == 'Operativo' %}
-        <p class="subtitle">Revisa y pre-aprueba las solicitudes pendientes (Rectificacion, Oposicion y Cancelacion).</p>
+        <div class="sub">Revisa y pre-aprueba las solicitudes pendientes (rectificación, oposición y cancelación).</div>
         {% elif rol == 'Administrador' %}
-        <p class="subtitle">Como Administrador puedes firmar como Coordinador y ademas ejecutar las cancelaciones finales firmadas por Coordinacion.</p>
+        <div class="sub">Como administrador puedes firmar como Coordinación y además ejecutar las cancelaciones finales firmadas por Coordinación.</div>
         {% else %}
-        <p class="subtitle">Revisa y firma las solicitudes pre-aprobadas por Operativos. La firma aplica Rectificaciones/Oposiciones; las Cancelaciones pasan al Administrador.</p>
+        <div class="sub">Revisa y firma las solicitudes pre-aprobadas por Operativos. La firma aplica rectificaciones/oposiciones; las cancelaciones pasan al administrador.</div>
         {% endif %}
     </div>
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert-{{ message.tags }}">{{ message }}</div>
+            <div class="alert {{ message.tags }}">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
     <div class="table-card">
         {% if solicitudes %}
-        <table>
+        <table class="tbl">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Tipo</th>
-                    <th>Expediente Ref.</th>
-                    <th>Fecha Creación</th>
-                    <th>Estado Actual</th>
-                    <th>Acción</th>
+                    <th>Expediente ref.</th>
+                    <th>Fecha creación</th>
+                    <th>Estado actual</th>
+                    <th style="text-align:right;">Acción</th>
                 </tr>
             </thead>
             <tbody>
                 {% for s in solicitudes %}
                 <tr>
-                    <td>#{{ s.pk }}</td>
-                    <td>
-                        <span class="badge badge-{{ s.tipo }}">{{ s.get_tipo_display }}</span>
-                    </td>
+                    <td class="cell-id">#{{ s.pk }}</td>
+                    <td><span class="badge badge-{{ s.tipo }}">{{ s.get_tipo_display }}</span></td>
                     <td>
                         {% if s.expediente_id %}
-                            <a href="{% url 'expediente:editar_expediente' s.expediente_id %}" style="color: #2980b9; font-weight: 600;">Ver Exp. #{{ s.expediente_id }}</a>
+                            <a href="{% url 'expediente:editar_expediente' s.expediente_id %}" style="color:var(--secondary-700); font-weight:600; text-decoration:none;">Ver Exp. #{{ s.expediente_id }}</a>
                         {% else %}
-                            <span style="color: #aaa;">(eliminado)</span>
+                            <span class="muted">(eliminado)</span>
                         {% endif %}
                     </td>
                     <td>{{ s.fecha_creacion|date:"d/m/Y H:i" }}</td>
                     <td>{{ s.get_estado_display }}</td>
-                    <td>
+                    <td style="text-align:right;">
                         {% if rol == 'Operativo' %}
-                            <a href="{% url 'expediente:responder_arco' s.pk %}" class="btn-action">Evaluar</a>
+                            <a href="{% url 'expediente:responder_arco' s.pk %}" class="btn btn-secondary btn-sm">Evaluar</a>
                         {% elif s.estado == 'firmada_coordinador' and s.tipo == 'cancelacion' %}
-                            <a href="{% url 'expediente:ejecutar_arco_admin' s.pk %}" class="btn-action" style="background: #c0392b;">Ejecutar Borrado</a>
+                            <a href="{% url 'expediente:ejecutar_arco_admin' s.pk %}" class="btn btn-danger btn-sm">Ejecutar borrado</a>
                         {% else %}
-                            <a href="{% url 'expediente:firmar_arco' s.pk %}" class="btn-action">Firmar</a>
+                            <a href="{% url 'expediente:firmar_arco' s.pk %}" class="btn btn-primary btn-sm">Firmar</a>
                         {% endif %}
                     </td>
                 </tr>
@@ -104,7 +81,7 @@
             </tbody>
         </table>
         {% else %}
-        <p style="text-align: center; color: #888; padding: 3rem 0;">No hay solicitudes pendientes para tu rol.</p>
+        <div class="empty">No hay solicitudes pendientes para tu rol.</div>
         {% endif %}
     </div>
 </div>

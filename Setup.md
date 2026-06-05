@@ -104,11 +104,20 @@ python manage.py crear_admins_base
 
 ### 9. Levantar el servidor
 
+Para uso local exclusivo en tu computadora:
 ```bash
 python manage.py runserver
 ```
-
 Accede en: [http://127.0.0.1:8000/usuarios/login/](http://127.0.0.1:8000/usuarios/login/)
+
+**Para uso con múltiples usuarios en Red Local (LAN):**
+Si deseas que otros dispositivos en tu misma red Wi-Fi accedan al sistema simultáneamente (por ejemplo, para una demostración):
+```bash
+python manage.py runserver 0.0.0.0:8000
+```
+- Averigua tu IP local (con `ipconfig` en Windows).
+- Accede desde los otros dispositivos en: `http://<TU_IP_LOCAL>:8000/usuarios/login/`
+- *(Asegúrate de permitir el acceso en el Firewall de Windows cuando te lo solicite).*
 
 Credenciales por defecto:
 - **admin_prod** / `CasaMonarca2026!`
@@ -118,7 +127,7 @@ Credenciales por defecto:
 
 El portal público no requiere login. El migrante usa el folio que el Operativo le entregó al registrar su expediente (formato `CM-YYYYMMDD-XXXX`) más su nombre completo tal como fue capturado.
 
-Accede en: [http://127.0.0.1:8000/mi-expediente/](http://127.0.0.1:8000/mi-expediente/)
+Accede en: [http://127.0.0.1:8000/mi-expediente/](http://127.0.0.1:8000/mi-expediente/) (o vía tu IP local si lo corres en LAN).
 
 Desde el portal el migrante puede:
 - **Consultar** sus datos personales registrados.

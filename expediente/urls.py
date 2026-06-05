@@ -9,6 +9,7 @@ urlpatterns = [
 
     path('expedientes/',            views.lista_expedientes,      name='lista_expedientes'),
     path('expedientes/verificar/',  views.verificar_expedientes,  name='verificar_expedientes'),
+    path('expedientes/pre-aprobar/<int:pk>/', views.pre_aprobar_expediente, name='pre_aprobar_expediente'),
     path('expedientes/editar/<int:pk>/', views.editar_expediente, name='editar_expediente'),
     path('expedientes/eliminar/<int:pk>/', views.eliminar_expediente, name='eliminar_expediente'),
     

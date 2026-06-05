@@ -1,90 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expedientes — Casa Monarca</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
-        .navbar { background: #1a5276; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .navbar-brand { color: white; font-size: 1.1rem; font-weight: 700; }
-        .btn-back { color: #aed6f1; text-decoration: none; font-size: 0.875rem; border: 1px solid #aed6f1; padding: 0.3rem 0.75rem; border-radius: 6px; }
-        .btn-back:hover { background: white; color: #1a5276; }
-
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
-
-        .header-section { margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        h2 { color: #1a5276; }
-
-        .filters {
-            background: white; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;
-        }
-        .filter-group { display: flex; flex-direction: column; }
-        .filter-group label { font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 0.3rem; }
-        .filter-group select, .filter-group input { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
-        .btn-filter { background: #1a5276; color: white; border: none; padding: 0.55rem 1rem; border-radius: 4px; cursor: pointer; }
-        .btn-filter:hover { background: #154360; }
-        .btn-clear { background: #e5e7e9; color: #555; border: none; padding: 0.55rem 1rem; border-radius: 4px; text-decoration: none; font-size: 0.9rem; }
-
-        .table-card { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 2rem;}
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-        th { background: #f8f9fa; color: #333; font-weight: 600; }
-        tr:hover { background: #fbfcfd; }
-
-        .badge-verificado { background: #eafaf1; color: #1e8449; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .badge-pendiente { background: #fef5e7; color: #d68910; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-
-        .alert-success { background: #eafaf1; color: #1e8449; border-left: 4px solid #1e8449; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-        .alert-error { background: #fdecea; color: #c0392b; border-left: 4px solid #c0392b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-        .alert-warning { background: #fef5e7; color: #d68910; border-left: 4px solid #d68910; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
-
-        /* Estilos para el formulario de validación al fondo */
-        .validation-bar {
-            background: #eaf2f8; padding: 1.5rem; border-radius: 8px; border: 1px solid #aed6f1;
-            display: flex; gap: 1rem; align-items: center; justify-content: flex-end;
-        }
-        .validation-bar input[type="password"] {
-            padding: 0.7rem; border: 1px solid #2e86c1; border-radius: 4px; font-family: monospace; width: 300px;
-        }
-        .btn-validate {
-            background: #1e8449; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; font-weight: bold; cursor: pointer;
-        }
-        .btn-validate:hover { background: #196f3d; }
-    </style>
+    {% include "cm_base.html" %}
 </head>
 <body>
 
+<div class="cm-top-accent"></div>
 <nav class="navbar">
-    <div class="navbar-brand">🦋 Casa Monarca</div>
-    <a href="{% url 'expediente:dashboard' %}" class="btn-back">← Volver al Dashboard</a>
+    <a href="{% url 'expediente:dashboard' %}" class="brand">
+        <span class="cm-mark"></span>
+        <span class="wm">Casa Monarca<small>Ayuda Humanitaria al Migrante</small></span>
+    </a>
+    <div class="nav-right">
+        <a href="{% url 'expediente:dashboard' %}" class="btn btn-ghost btn-sm">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+            Volver al panel
+        </a>
+    </div>
 </nav>
 
-<div class="container">
-    <div class="header-section">
-        <h2>{% if puede_verificar %}Todos los Expedientes{% else %}Mis Expedientes{% endif %}</h2>
+<div class="page page-wide">
+    <div class="page-head">
+        <div class="eyebrow">Expedientes</div>
+        <h1>{% if puede_verificar %}Todos los expedientes{% else %}Mis expedientes{% endif %}</h1>
     </div>
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert-{{ message.tags }}">{{ message }}</div>
+            <div class="alert {{ message.tags }}">{{ message }}</div>
         {% endfor %}
     {% endif %}
 
     <form method="GET" class="filters">
-        <div class="filter-group">
-            <label>Estado de Verificación</label>
+        <div class="field">
+            <label>Estado de verificación</label>
             <select name="verificado">
                 <option value="">Todos</option>
                 <option value="si" {% if filtro_verificado == 'si' %}selected{% endif %}>Verificados</option>
                 <option value="no" {% if filtro_verificado == 'no' %}selected{% endif %}>Pendientes</option>
             </select>
         </div>
-        
+
         {% if puede_verificar %}
-        <div class="filter-group">
+        <div class="field">
             <label>Creado por</label>
             <select name="creador">
                 <option value="">Todos</option>
@@ -95,90 +54,197 @@
         </div>
         {% endif %}
 
-        <div class="filter-group">
-            <label>Fecha Desde</label>
+        <div class="field">
+            <label>Fecha desde</label>
             <input type="date" name="fecha_desde" value="{{ filtro_fecha_desde }}">
         </div>
-        <div class="filter-group">
-            <label>Fecha Hasta</label>
+        <div class="field">
+            <label>Fecha hasta</label>
             <input type="date" name="fecha_hasta" value="{{ filtro_fecha_hasta }}">
         </div>
 
-        <button type="submit" class="btn-filter">Filtrar</button>
-        <a href="{% url 'expediente:lista_expedientes' %}" class="btn-clear">Limpiar</a>
+        <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            Filtrar
+        </button>
+        <a href="{% url 'expediente:lista_expedientes' %}" class="btn btn-ghost">Limpiar</a>
     </form>
 
     <form method="POST" action="{% url 'expediente:verificar_expedientes' %}">
         {% csrf_token %}
         <div class="table-card">
-            <table>
+            <table class="tbl">
                 <thead>
                     <tr>
-                        {% if puede_verificar %}
-                        <th width="50">Validar</th>
-                        {% endif %}
+                        <th style="width:36px;"></th>
+                        {% if puede_verificar %}<th style="width:46px;">Validar</th>{% endif %}
                         <th>ID</th>
-                        <th>Fecha Atención</th>
-                        <th>Nombre Completo</th>
+                        <th>Fecha atención</th>
+                        <th>Nombre completo</th>
                         <th>Género</th>
-                        <th>País de Origen</th>
+                        <th>País de origen</th>
                         <th>Creado por</th>
                         <th>Estado</th>
-                        {% if puede_editar or puede_eliminar %}
-                        <th>Acciones</th>
-                        {% endif %}
+                        <th style="width:80px; text-align:center; white-space:normal; line-height:1.2;" title="Visto bueno del personal operativo antes de la firma del coordinador">Visto bueno<br><span style="font-weight:400; font-size:.72rem; color:var(--ink-faint);">operativo</span></th>
+                        {% if puede_editar or puede_eliminar %}<th style="text-align:right;">Acciones</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in expedientes_data %}
-                        <tr>
+                        <tr class="exp-row" onclick="toggleExpediente({{ item.expediente.pk }})">
+
+                            {# Chevron expandir #}
+                            <td style="text-align:center; color:var(--ink-faint); font-size:.85rem; user-select:none;">
+                                <span id="arrow-exp-{{ item.expediente.pk }}">▸</span>
+                            </td>
+
+                            {# Checkbox verificar (solo coordinador/admin) #}
                             {% if puede_verificar %}
-                            <td>
+                            <td onclick="event.stopPropagation();">
                                 {% if not item.expediente.verificado and item.datos %}
-                                <input type="checkbox" name="expedientes_verificar" value="{{ item.expediente.pk }}">
+                                <input type="checkbox" name="expedientes_verificar" value="{{ item.expediente.pk }}" style="accent-color:var(--primary); width:16px; height:16px;">
                                 {% endif %}
                             </td>
                             {% endif %}
-                            <td>#{{ item.expediente.pk }}</td>
+
+                            <td class="cell-id">#{{ item.expediente.pk }}</td>
                             <td>{{ item.expediente.fecha_atencion }}</td>
-                            
+
                             {% if item.datos %}
                                 <td>{{ item.datos.nombre_pila }} {{ item.datos.primer_apellido }} {{ item.datos.segundo_apellido }}</td>
                                 <td>{{ item.datos.genero }}</td>
                                 <td>{{ item.datos.pais_origen }}</td>
                             {% else %}
-                                <td colspan="3" style="color: #c0392b; font-style: italic;">
-                                    Datos cifrados (sin acceso)
-                                </td>
+                                <td colspan="3" class="muted" style="font-style:italic;">Datos cifrados (sin acceso)</td>
                             {% endif %}
 
-                            <td>{{ item.expediente.creado_por.username }}</td>
+                            <td class="muted">{{ item.expediente.creado_por.username }}</td>
+
+                            {# Estado: solo Verificado / Pendiente #}
                             <td>
                                 {% if item.expediente.verificado %}
-                                    <span class="badge-verificado">Verificado</span>
+                                    <span class="badge badge-ok">Verificado</span>
                                 {% else %}
-                                    <span class="badge-pendiente">Pendiente</span>
+                                    <span class="badge badge-warn">Pendiente</span>
                                 {% endif %}
                             </td>
+
+                            {# Columna Op. — pre-aprobación operativa #}
+                            <td style="text-align:center;" onclick="event.stopPropagation();">
+                                {% if item.expediente.verificado %}
+                                    {# Expediente ya firmado, palomita muted #}
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.35;"><path d="m5 12 5 5L20 6"/></svg>
+                                {% elif puede_pre_aprobar %}
+                                    {# Operativo: botón toggle clickeable #}
+                                    <button type="button"
+                                        class="op-check{% if item.expediente.pre_aprobado %} op-check--on{% endif %}"
+                                        data-url="{% url 'expediente:pre_aprobar_expediente' item.expediente.pk %}"
+                                        onclick="preAprobar(this)"
+                                        title="{% if item.expediente.pre_aprobado %}Retirar pre-aprobación{% else %}Marcar como pre-aprobado{% endif %}">
+                                        {% if item.expediente.pre_aprobado %}
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>
+                                        {% else %}
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+                                        {% endif %}
+                                    </button>
+                                {% else %}
+                                    {# Coordinador / Admin: solo lectura #}
+                                    {% if item.expediente.pre_aprobado %}
+                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>
+                                    {% else %}
+                                        <span style="color:var(--ink-faint); font-size:.9rem;">—</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+
+                            {# Acciones editar/eliminar (coordinador/admin) #}
                             {% if puede_editar or puede_eliminar %}
-                            <td>
+                            <td onclick="event.stopPropagation();">
+                                <div class="row gap-sm" style="justify-content:flex-end;">
                                 {% if puede_editar and item.datos %}
-                                    <a href="{% url 'expediente:editar_expediente' item.expediente.pk %}" style="text-decoration: none; font-size: 1.1rem; margin-right: 0.5rem;" title="Editar">✏️</a>
+                                    <a href="{% url 'expediente:editar_expediente' item.expediente.pk %}" class="icon-link" title="Editar">
+                                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                                    </a>
                                 {% endif %}
                                 {% if puede_eliminar %}
                                     <form method="POST" action="{% url 'expediente:eliminar_expediente' item.expediente.pk %}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este expediente? Esta acción requerirá tu firma digital.');">
                                         {% csrf_token %}
-                                        <button type="submit" style="background:none; border:none; cursor:pointer; font-size: 1.1rem;" title="Eliminar">🗑️</button>
+                                        <button type="submit" class="icon-link danger" style="border:none; background:none; cursor:pointer;" title="Eliminar">
+                                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>
+                                        </button>
                                     </form>
                                 {% endif %}
+                                </div>
                             </td>
                             {% endif %}
                         </tr>
+
+                        {# ── Fila de detalles expandible ── #}
+                        <tr class="exp-detail-row">
+                            <td colspan="{% if puede_verificar %}11{% else %}9{% endif %}" style="padding:0; border-bottom:1px solid var(--line);">
+                                <div id="det-{{ item.expediente.pk }}" class="exp-detail-panel">
+                                    {% if item.datos %}
+                                    <div class="exp-detail-grid">
+                                        <div>
+                                            <div class="eyebrow" style="font-size:.72rem; margin-bottom:.75rem;">Datos del migrante</div>
+                                            <dl class="exp-dl">
+                                                <dt>Nombre completo</dt>
+                                                <dd>{{ item.datos.nombre_pila }} {{ item.datos.primer_apellido }} {{ item.datos.segundo_apellido }}</dd>
+                                                <dt>Teléfono</dt>
+                                                <dd>{{ item.datos.telefono|default:"—" }}</dd>
+                                                <dt>Fecha de nacimiento</dt>
+                                                <dd>{{ item.datos.fecha_nacimiento|default:"—" }}</dd>
+                                                <dt>Edad</dt>
+                                                <dd>{{ item.datos.edad|default:"—" }}</dd>
+                                                <dt>Estado civil</dt>
+                                                <dd>{{ item.datos.estado_civil|default:"—" }}</dd>
+                                                <dt>Departamento / Estado</dt>
+                                                <dd>{{ item.datos.departamento|default:"—" }}</dd>
+                                                <dt>Grupo de población</dt>
+                                                <dd>{{ item.datos.grupo_poblacion|default:"—" }}</dd>
+                                            </dl>
+                                        </div>
+                                        <div>
+                                            <div class="eyebrow" style="font-size:.72rem; margin-bottom:.75rem;">Estado del expediente</div>
+                                            <dl class="exp-dl">
+                                                <dt>Verificación</dt>
+                                                <dd>
+                                                    {% if item.expediente.verificado %}
+                                                        <span class="badge badge-ok">Verificado</span>
+                                                    {% else %}
+                                                        <span class="badge badge-warn">Pendiente de firma</span>
+                                                    {% endif %}
+                                                </dd>
+                                                <dt>Visto bueno</dt>
+                                                <dd>
+                                                    {% if item.expediente.pre_aprobado %}
+                                                        <span class="badge badge-ok">
+                                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></svg>
+                                                            {% if item.expediente.pre_aprobado_por %}{{ item.expediente.pre_aprobado_por.get_full_name|default:item.expediente.pre_aprobado_por.username }}{% else %}Operativo{% endif %}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="muted" style="font-size:.82rem;">Sin revisar</span>
+                                                    {% endif %}
+                                                </dd>
+                                                <dt>Creado por</dt>
+                                                <dd>{{ item.expediente.creado_por.username }}</dd>
+                                                <dt>Fecha de registro</dt>
+                                                <dd>{{ item.expediente.fecha_creacion|date:"d/m/Y H:i" }}</dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div style="padding:.75rem 1rem;">
+                                        <p class="muted" style="font-size:.88rem; font-style:italic;">Datos cifrados — sin acceso en esta sesión.</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+
                     {% empty %}
                         <tr>
-                            <td colspan="{% if puede_verificar %}8{% else %}7{% endif %}" style="text-align: center; color: #777; padding: 2rem;">
-                                No se encontraron expedientes.
-                            </td>
+                            <td colspan="{% if puede_verificar %}11{% else %}9{% endif %}" class="empty">No se encontraron expedientes.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -186,15 +252,92 @@
         </div>
 
         {% if puede_verificar %}
-        <div class="validation-bar">
-            <span style="color:#1a5276; font-size:0.9rem; font-style:italic; margin-right:auto;">
-                Nota: Se requerirá la llave de firma (.key) si no ha sido cargada en esta sesión.
+        <div class="card card-pad mt" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; background:var(--bg);">
+            <span class="row gap-sm center muted" style="font-size:.85rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.5 12.5 9-9M16 4l3 3M14 6l3 3"/></svg>
+                Se requerirá la llave de firma (.key) si no ha sido cargada en esta sesión.
             </span>
-            <button type="submit" class="btn-validate">Firmar y verificar seleccionados</button>
+            <button type="submit" class="btn btn-success">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/><path d="M2 2l7.6 7.6"/><circle cx="11" cy="11" r="2"/></svg>
+                Firmar y verificar seleccionados
+            </button>
         </div>
         {% endif %}
     </form>
 </div>
+
+<style>
+    .exp-row { cursor: pointer; }
+    .exp-row:hover { background: var(--bg-2); }
+    .exp-detail-row td { padding: 0; }
+    .exp-detail-panel { display: none; }
+    .exp-detail-panel.open { display: block; }
+    .exp-detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        padding: .9rem 1.25rem;
+        background: var(--bg);
+        border-top: 1px solid var(--line);
+    }
+    .exp-dl { display: grid; grid-template-columns: auto 1fr; gap: .3rem .75rem; font-size: .85rem; align-items: baseline; }
+    .exp-dl dt { color: var(--ink-faint); font-weight: 500; white-space: nowrap; }
+    .exp-dl dd { color: var(--ink); }
+
+    /* Botón Op. (pre-aprobado toggle para operativo) */
+    .op-check {
+        background: none;
+        border: 1.5px solid var(--line-strong);
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--ink-faint);
+        transition: border-color .15s, color .15s, background .15s;
+        padding: 0;
+    }
+    .op-check:hover {
+        border-color: var(--ok);
+        color: var(--ok);
+    }
+    .op-check--on {
+        background: var(--ok-bg);
+        border-color: var(--ok-line);
+        color: var(--ok);
+    }
+    .op-check:disabled { opacity: .5; cursor: default; }
+
+    @media (max-width: 640px) {
+        .exp-detail-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<script>
+    function toggleExpediente(pk) {
+        const panel = document.getElementById('det-' + pk);
+        const arrow = document.getElementById('arrow-exp-' + pk);
+        if (!panel) return;
+        panel.classList.toggle('open');
+        if (arrow) arrow.textContent = panel.classList.contains('open') ? '▾' : '▸';
+    }
+
+    function preAprobar(btn) {
+        const url = btn.dataset.url;
+        const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        btn.disabled = true;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf }
+        }).then(function() {
+            window.location.reload();
+        }).catch(function() {
+            btn.disabled = false;
+        });
+    }
+</script>
 
 </body>
 </html>

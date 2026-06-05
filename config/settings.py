@@ -10,7 +10,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -96,3 +96,8 @@ LOGIN_REDIRECT_URL = '/expediente/'
 LOGOUT_REDIRECT_URL = '/usuarios/login/'
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
+
+# Archivos estáticos personalizados (como el logo)
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
